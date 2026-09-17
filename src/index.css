@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+}
+
+:root {
+  --font-size-base: 16px;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+}
+
+html {
+  font-size: var(--font-size-base);
+}
+
+@layer components {
+  .text-primary { color: var(--color-primary) !important; }
+  .bg-primary { background-color: var(--color-primary) !important; }
+  .border-primary { border-color: var(--color-primary) !important; }
+  .ring-primary { --tw-ring-color: var(--color-primary) !important; }
+  .btn-primary { 
+    background-color: var(--color-primary);
+    color: white;
+  }
+  .btn-primary:hover {
+    background-color: var(--color-primary-dark);
+  }
+}
