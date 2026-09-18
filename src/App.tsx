@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -7,6 +6,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import DashboardLayout from './components/DashboardLayout';
+import HomePage from './pages/HomePage';
+import TablePage from './pages/TablePage';
 import LoginPage from './pages/LoginPage';
 import DashboardHome from './pages/DashboardHome';
 import UserProfilePage from './pages/profile/ProfilePage';
@@ -20,19 +21,21 @@ function App() {
           <AuthProvider>
             <Routes>
               {/* Public Routes */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/table" element={<TablePage />} />
+              <Route path="/table/profile" element={<UserProfilePage backTo="/table" />} />
               <Route path="/login" element={<LoginPage />} />
               
-              {/* Protected Routes */}
-              <Route path="/" element={<PrivateRoute />}>
-                <Route index element={<Navigate to="/dashboard" replace />} />
-                <Route path="dashboard" element={<DashboardLayout />}>
+              {/* Protected Routes (Cashier Track) */}
+              <Route element={<PrivateRoute />}>
+                <Route path="/dashboard" element={<DashboardLayout />}>
                   <Route index element={<DashboardHome />} />
                   <Route path="profile" element={<UserProfilePage />} />
                 </Route>
               </Route>
               
               {/* Fallback route */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AuthProvider>
         </BrowserRouter>

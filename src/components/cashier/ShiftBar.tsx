@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { FiPlay, FiSquare, FiMonitor, FiClock } from 'react-icons/fi';
 import { cashierApi } from '../../services/cashierService';
 import type { Shift } from '../../types/cashier';
@@ -10,7 +10,6 @@ interface ShiftBarProps {
 }
 
 const ShiftBar: React.FC<ShiftBarProps> = ({ currentShift, onShiftChange }) => {
-  const queryClient = useQueryClient();
   const [selectedCashierId, setSelectedCashierId] = useState<number | ''>('');
 
   const { data: cashiers = [], isLoading: loadingCashiers } = useQuery({
@@ -27,7 +26,7 @@ const ShiftBar: React.FC<ShiftBarProps> = ({ currentShift, onShiftChange }) => {
 
   const endShiftMutation = useMutation({
     mutationFn: cashierApi.endShift,
-    onSuccess: (shift) => {
+    onSuccess: () => {
       onShiftChange(null);
     },
   });

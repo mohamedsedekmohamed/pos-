@@ -13,6 +13,15 @@
   --color-primary-dark: #2563eb;
 }
 
+.dark {
+  --color-slate-950: #000000;
+  --color-slate-900: #000000;
+  --color-slate-850: #0a0a0a;
+  --color-slate-800: #111111;
+  --color-slate-700: #1c1c1c;
+  --color-slate-600: #2a2a2a;
+}
+
 html {
   font-size: var(--font-size-base);
 }
@@ -30,3 +39,31 @@ html {
     background-color: var(--color-primary-dark);
   }
 }
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
+}
+
+@keyframes float-reverse {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(8px) rotate(-3deg); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(1.08); }
+}
+
+.animate-float-gentle {
+  animation: float-gentle 5s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 6s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 6s ease-in-out infinite;
+}
+

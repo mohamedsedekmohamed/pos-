@@ -258,3 +258,18 @@ export interface OrderListResponse {
   data: Order[];
   // Pagination fields can be added here
 }
+
+export interface SelectedVariation {
+  variationId: number;
+  variationName: string;
+  optionId: number;
+  optionName: string;
+  price: number;
+}
+
+export interface SelectedAddon {
+  addonId: number;
+  name: string;
+  price: number;
+  quantity: number;
+}
