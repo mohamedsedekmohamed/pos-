@@ -1,15 +1,17 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { queryClient } from './lib/queryClient';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import { ShiftProvider } from './context/ShiftContext';
 import PrivateRoute from './components/PrivateRoute';
 import DashboardLayout from './components/DashboardLayout';
 import HomePage from './pages/HomePage';
 import TablePage from './pages/TablePage';
 import LoginPage from './pages/LoginPage';
 import DashboardHome from './pages/DashboardHome';
+import ShiftPage from './pages/ShiftPage';
 import UserProfilePage from './pages/profile/ProfilePage';
 import './App.css';
 
@@ -28,9 +30,18 @@ function App() {
               
               {/* Protected Routes (Cashier Track) */}
               <Route element={<PrivateRoute />}>
-                <Route path="/dashboard" element={<DashboardLayout />}>
-                  <Route index element={<DashboardHome />} />
-                  <Route path="profile" element={<UserProfilePage />} />
+                <Route
+                  element={
+                    <ShiftProvider>
+                      <Outlet />
+                    </ShiftProvider>
+                  }
+                >
+                  <Route path="/dashboard/shift" element={<ShiftPage />} />
+                  <Route path="/dashboard" element={<DashboardLayout />}>
+                    <Route index element={<DashboardHome />} />
+                    <Route path="profile" element={<UserProfilePage />} />
+                  </Route>
                 </Route>
               </Route>
               

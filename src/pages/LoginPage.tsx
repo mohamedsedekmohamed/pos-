@@ -33,7 +33,7 @@ const LoginPage: React.FC = () => {
 
     try {
       await login({ name, password, guard: 'cashier_man' });
-      navigate('/dashboard', { replace: true });
+      navigate('/dashboard/shift', { replace: true });
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };
       setError(axiosError.response?.data?.message || 'فشل تسجيل الدخول. تحقق من صحة البيانات.');

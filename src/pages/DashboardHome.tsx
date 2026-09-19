@@ -1,20 +1,31 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cashierApi } from '../services/cashierService';
+import { useShift } from '../context/ShiftContext';
 import CategoryTabs from '../components/cashier/CategoryTabs';
 import ProductGrid from '../components/cashier/ProductGrid';
 import Cart from '../components/cashier/Cart';
 import ProductModal from '../components/cashier/ProductModal';
 import CheckoutModal from '../components/cashier/CheckoutModal';
 import ShiftBar from '../components/cashier/ShiftBar';
-import type { Product, Shift, AddToCartPayload, UpdateCartPayload, CheckoutPayload } from '../types/cashier';
+import type { Product, AddToCartPayload, UpdateCartPayload, CheckoutPayload } from '../types/cashier';
 
 const DashboardHome: React.FC = () => {
+  const navigate = useNavigate();
+  const { hasActiveShift, isCheckingShift } = useShift();
+
+  // Redirect to shift page if no active shift is found
+  useEffect(() => {
+    if (!isCheckingShift && !hasActiveShift) {
+      navigate('/dashboard/shift', { replace: true });
+    }
+  }, [isCheckingShift, hasActiveShift, navigate]);
+
   // ── State ──
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
-  const [currentShift, setCurrentShift] = useState<Shift | null>(null);
   const queryClient = useQueryClient();
 
   // ── API Queries ──
@@ -135,7 +146,7 @@ const DashboardHome: React.FC = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* Shift Bar */}
-      <ShiftBar currentShift={currentShift} onShiftChange={setCurrentShift} />
+      <ShiftBar />
 
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row flex-1 min-h-0">

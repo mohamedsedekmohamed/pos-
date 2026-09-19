@@ -86,6 +86,19 @@ export const cashierApi = {
   },
 
   // ── Shift ──
+  checkStartShift: async (): Promise<{
+    status: boolean;
+    message?: string;
+    data?: any;
+  }> => {
+    const { data } = await api.get<{
+      status: boolean;
+      message?: string;
+      data?: any;
+    }>('/api/cashier/check-start-shift');
+    return data;
+  },
+
   startShift: async (params: {
     cashier_id: number;
     cashier_man_id?: number | null;

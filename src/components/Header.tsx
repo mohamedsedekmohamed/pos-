@@ -1,12 +1,14 @@
 import React from 'react';
-import { FiSun, FiMoon, FiLogOut } from 'react-icons/fi';
+import { FiSun, FiMoon, FiLogOut, FiClock } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useShift } from '../context/ShiftContext';
 import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { hasActiveShift } = useShift();
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6">
@@ -22,6 +24,29 @@ const Header: React.FC = () => {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-3">
+        {/* Shift Badge */}
+        <Link
+          to="/dashboard/shift"
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+            hasActiveShift
+              ? 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+              : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-600 dark:text-amber-400'
+          }`}
+          title={hasActiveShift ? 'الشيفت نشط - انقر للتفاصيل' : 'الشيفت غير مفعل - انقر لبدء الشيفت'}
+        >
+          {hasActiveShift ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>الشيفت نشط</span>
+            </>
+          ) : (
+            <>
+              <FiClock className="w-3.5 h-3.5" />
+              <span>فتح شيفت</span>
+            </>
+          )}
+        </Link>
+
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}

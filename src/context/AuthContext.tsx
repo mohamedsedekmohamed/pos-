@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     onSuccess: (data) => {
       setToken(data.token);
       queryClient.setQueryData(['auth', 'me'], data.user);
-      navigate('/dashboard', { replace: true });
+      navigate('/dashboard/shift', { replace: true });
     },
     onError: (error: any) => {
       setLoginError(error.response?.data?.message || 'فشل تسجيل الدخول...');
@@ -60,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     mutationFn: authApi.logout,
     onSettled: () => {
       removeToken();
+      localStorage.removeItem('pos_active_shift');
       queryClient.clear();
       navigate('/login', { replace: true });
     },
