@@ -67,3 +67,49 @@ html {
   animation: pulse-soft 6s ease-in-out infinite;
 }
 
+/* ══════════ POS THERMAL RECEIPT PRINT STYLES ══════════ */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+
+  #pos-receipt-print,
+  #pos-receipt-print * {
+    visibility: visible;
+  }
+
+  #pos-receipt-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    min-width: 80mm !important;
+    margin: 0 !important;
+    padding: 5mm !important;
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  @page {
+    size: 80mm auto;
+    margin: 0mm;
+  }
+}

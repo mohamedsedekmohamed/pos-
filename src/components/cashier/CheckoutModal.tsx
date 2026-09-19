@@ -5,10 +5,14 @@ import { useLanguage } from '../../context/LanguageContext';
 import type { CheckoutPayload } from '../../types/cashier';
 import TableSelector from './TableSelector';
 
+export interface CheckoutMeta {
+  tableName?: string;
+}
+
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCheckout: (payload: CheckoutPayload) => void;
+  onCheckout: (payload: CheckoutPayload, meta?: CheckoutMeta) => void;
   isSubmitting: boolean;
 }
 
@@ -25,6 +29,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
   const [hallTableId, setHallTableId] = useState<number | ''>('');
+  const [tableName, setTableName] = useState<string>('');
 
   if (!isOpen) return null;
 
@@ -33,14 +38,19 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     if (orderType === 'dinein' && hallTableId === '') {
       return; // Prevent submission if no table is selected
     }
-    onCheckout({
-      module: orderType,
-      name: name || null,
-      phone: phone || null,
-      address: orderType === 'delivery' ? (address || null) : null,
-      note: note || null,
-      hall_table_id: orderType === 'dinein' && hallTableId !== '' ? Number(hallTableId) : null,
-    });
+    onCheckout(
+      {
+        module: orderType,
+        name: name || null,
+        phone: phone || null,
+        address: orderType === 'delivery' ? (address || null) : null,
+        note: note || null,
+        hall_table_id: orderType === 'dinein' && hallTableId !== '' ? Number(hallTableId) : null,
+      },
+      {
+        tableName: orderType === 'dinein' ? tableName : undefined,
+      }
+    );
   };
 
   return (
@@ -134,7 +144,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t('choose_table')}</label>
                 <TableSelector
                   selectedTableId={hallTableId}
-                  onSelectTable={(id) => setHallTableId(id)}
+                  onSelectTable={(id, name) => {
+                    setHallTableId(id);
+                    if (name) setTableName(name);
+                  }}
                 />
                 {hallTableId === '' && (
                   <p className="text-xs text-red-500 mt-2">{t('select_table_error')}</p>

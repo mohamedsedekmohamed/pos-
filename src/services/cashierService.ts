@@ -147,8 +147,9 @@ export const cashierApi = {
   },
 
   // ── Orders ──
-  checkout: async (payload: CheckoutPayload): Promise<void> => {
-    await api.post('/api/cashier/orders/checkout', payload);
+  checkout: async (payload: CheckoutPayload): Promise<any> => {
+    const { data } = await api.post('/api/cashier/orders/checkout', payload);
+    return data;
   },
 
   getOrders: async (params?: Record<string, any>): Promise<OrderListResponse> => {

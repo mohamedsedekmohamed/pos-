@@ -1,21 +1,24 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cashierApi } from '../services/cashierService';
+import { useAuth } from '../context/AuthContext';
 import { useShift } from '../context/ShiftContext';
 import { useOrderType } from '../context/OrderTypeContext';
 import CategoryTabs from '../components/cashier/CategoryTabs';
 import ProductGrid from '../components/cashier/ProductGrid';
 import Cart from '../components/cashier/Cart';
 import ProductModal from '../components/cashier/ProductModal';
-import CheckoutModal from '../components/cashier/CheckoutModal';
+import CheckoutModal, { type CheckoutMeta } from '../components/cashier/CheckoutModal';
+import ReceiptModal, { type ReceiptOrderData } from '../components/cashier/ReceiptModal';
 import ShiftBar from '../components/cashier/ShiftBar';
 import type { Product, AddToCartPayload, UpdateCartPayload, CheckoutPayload } from '../types/cashier';
 
 const DashboardHome: React.FC = () => {
   const navigate = useNavigate();
-  const { hasActiveShift, isCheckingShift } = useShift();
-  const { orderType } = useOrderType();
+  const { user } = useAuth();
+  const { hasActiveShift, isCheckingShift, activeShift, activeDevice } = useShift();
+  const { orderType, orderTypeLabel } = useOrderType();
 
   // Redirect to shift page if no active shift is found
   useEffect(() => {
@@ -28,6 +31,14 @@ const DashboardHome: React.FC = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [receiptOrderData, setReceiptOrderData] = useState<ReceiptOrderData | null>(null);
+  const pendingOrderRef = useRef<{
+    payload: CheckoutPayload;
+    meta?: CheckoutMeta;
+    items: typeof cartItems;
+    totals?: typeof grandTotals;
+  } | null>(null);
   const queryClient = useQueryClient();
 
   // ── API Queries ──
@@ -84,10 +95,39 @@ const DashboardHome: React.FC = () => {
 
   const checkoutMutation = useMutation({
     mutationFn: cashierApi.checkout,
-    onSuccess: () => {
+    onSuccess: (data: any) => {
+      const pending = pendingOrderRef.current;
+      if (pending) {
+        const orderId =
+          data?.data?.id ||
+          data?.id ||
+          Math.floor(100000 + Math.random() * 900000);
+
+        setReceiptOrderData({
+          orderId,
+          orderType: pending.payload.module,
+          orderTypeLabel: orderTypeLabel,
+          customerName: pending.payload.name,
+          customerPhone: pending.payload.phone,
+          deliveryAddress: pending.payload.address,
+          tableName: pending.meta?.tableName,
+          orderNote: pending.payload.note,
+          items: pending.items,
+          totals: pending.totals || {
+            grand_total_price: 0,
+            grand_total_discount: 0,
+            grand_total_tax: 0,
+            grand_final_price: 0,
+          },
+          createdAt: new Date().toISOString(),
+          cashierName: user?.name,
+          deviceName: activeDevice?.name,
+          branchName: activeShift?.branch_id ? `Branch #${activeShift.branch_id}` : undefined,
+        });
+        setIsReceiptModalOpen(true);
+      }
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       setIsCheckoutModalOpen(false);
-      // Optional: show a success toast here
     },
   });
 
@@ -141,9 +181,18 @@ const DashboardHome: React.FC = () => {
     clearMutation.mutate();
   }, [clearMutation]);
 
-  const handleCheckoutSubmit = useCallback((payload: CheckoutPayload) => {
-    checkoutMutation.mutate(payload);
-  }, [checkoutMutation]);
+  const handleCheckoutSubmit = useCallback(
+    (payload: CheckoutPayload, meta?: CheckoutMeta) => {
+      pendingOrderRef.current = {
+        payload,
+        meta,
+        items: [...cartItems],
+        totals: grandTotals ? { ...grandTotals } : undefined,
+      };
+      checkoutMutation.mutate(payload);
+    },
+    [cartItems, grandTotals, checkoutMutation]
+  );
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
@@ -203,6 +252,13 @@ const DashboardHome: React.FC = () => {
         onClose={() => setIsCheckoutModalOpen(false)}
         onCheckout={handleCheckoutSubmit}
         isSubmitting={checkoutMutation.isPending}
+      />
+
+      {/* Receipt Modal */}
+      <ReceiptModal
+        isOpen={isReceiptModalOpen}
+        onClose={() => setIsReceiptModalOpen(false)}
+        orderData={receiptOrderData}
       />
     </div>
   );

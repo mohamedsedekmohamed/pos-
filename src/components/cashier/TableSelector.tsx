@@ -6,7 +6,7 @@ import { FiMonitor } from 'react-icons/fi';
 
 interface TableSelectorProps {
   selectedTableId: number | '';
-  onSelectTable: (tableId: number) => void;
+  onSelectTable: (tableId: number, tableName?: string) => void;
 }
 
 const TableSelector: React.FC<TableSelectorProps> = ({ selectedTableId, onSelectTable }) => {
@@ -92,12 +92,14 @@ const TableSelector: React.FC<TableSelectorProps> = ({ selectedTableId, onSelect
               // We'll assume status true means available.
               const isAvailable = table.status;
 
+              const tableNameDisplay = renderLocalized(table.name);
+
               return (
                 <button
                   key={table.id}
                   type="button"
                   disabled={!isAvailable}
-                  onClick={() => onSelectTable(table.id)}
+                  onClick={() => onSelectTable(table.id, tableNameDisplay)}
                   className={`
                     relative p-4 rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-300
                     ${
