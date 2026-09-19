@@ -1,5 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
 import type { Category } from '../../types/cashier';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface CategoryTabsProps {
   categories: Category[];
@@ -14,6 +15,8 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
   onSelect,
   isLoading,
 }) => {
+  const { t, renderLocalized } = useLanguage();
+
   if (isLoading) {
     return (
       <div className="flex gap-3 p-4 overflow-x-auto scrollbar-hide">
@@ -38,32 +41,35 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
             : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md'
         }`}
       >
-        🍽️ الكل
+        🍽️ {t('all_products')}
       </button>
 
-      {categories.map((cat) => (
-        <button
-          key={cat.id}
-          onClick={() => onSelect(cat.id)}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-pointer ${
-            selectedId === cat.id
-              ? 'bg-gradient-to-l from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30 scale-105'
-              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md'
-          }`}
-        >
-          {cat.image && (
-            <img
-              src={cat.image}
-              alt={cat.name}
-              className="w-6 h-6 rounded-md object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          )}
-          {cat.name}
-        </button>
-      ))}
+      {categories.map((cat) => {
+        const localizedCatName = renderLocalized(cat.name) || cat.name;
+        return (
+          <button
+            key={cat.id}
+            onClick={() => onSelect(cat.id)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-pointer ${
+              selectedId === cat.id
+                ? 'bg-gradient-to-l from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30 scale-105'
+                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md'
+            }`}
+          >
+            {cat.image && (
+              <img
+                src={cat.image}
+                alt={localizedCatName}
+                className="w-6 h-6 rounded-md object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            )}
+            {localizedCatName}
+          </button>
+        );
+      })}
     </div>
   );
 };

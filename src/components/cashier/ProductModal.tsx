@@ -1,7 +1,9 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FiX, FiPlus, FiMinus, FiCheck } from 'react-icons/fi';
 import { cashierApi } from '../../services/cashierService';
+import { useOrderType } from '../../context/OrderTypeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import type { Product, Addon, SelectedVariation, SelectedAddon, AddToCartPayload } from '../../types/cashier';
 
 interface ProductModalProps {
@@ -17,6 +19,8 @@ const ProductModal: React.FC<ProductModalProps> = ({
   onClose,
   onAddToCart,
 }) => {
+  const { orderType } = useOrderType();
+  const { dir, t, renderLocalized } = useLanguage();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariations, setSelectedVariations] = useState<SelectedVariation[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<SelectedAddon[]>([]);
@@ -81,7 +85,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
     ?.filter((v) => v.required && v.status)
     .filter((v) => !selectedVariations.find((sv) => sv.variationId === v.id)) || [];
 
-  const canAdd = missingRequired.length === 0; // Removing product.stock !== 0 temporarily as test products might have 0 stock
+  const canAdd = missingRequired.length === 0;
 
   const handleAdd = () => {
     if (!canAdd) return;
@@ -106,7 +110,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
     });
 
     onAddToCart({
-      module: 'takeaway', // Default for now
+      module: orderType,
       product_id: product.id,
       quantity,
       notes: notes || null,
@@ -116,8 +120,11 @@ const ProductModal: React.FC<ProductModalProps> = ({
     onClose();
   };
 
+  const localizedProductName = renderLocalized(product.name) || product.name;
+  const localizedProductDesc = renderLocalized(product.description) || product.description;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" dir={dir}>
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -131,20 +138,22 @@ const ProductModal: React.FC<ProductModalProps> = ({
           {product.image && (
             <img
               src={product.image}
-              alt={product.name}
+              alt={localizedProductName}
               className="w-full h-full object-cover"
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <button
             onClick={onClose}
-            className="absolute top-3 left-3 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors cursor-pointer"
+            className="absolute top-3 rtl:left-3 ltr:right-3 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors cursor-pointer"
           >
             <FiX className="w-5 h-5" />
           </button>
-          <div className="absolute bottom-4 right-4 left-4">
-            <h2 className="text-xl font-bold text-white mb-1">{product.name}</h2>
-            <p className="text-white/70 text-sm line-clamp-1">{product.description}</p>
+          <div className="absolute bottom-4 start-4 end-4">
+            <h2 className="text-xl font-bold text-white mb-1">{localizedProductName}</h2>
+            {localizedProductDesc && (
+              <p className="text-white/70 text-sm line-clamp-1">{localizedProductDesc}</p>
+            )}
           </div>
         </div>
 
@@ -162,10 +171,10 @@ const ProductModal: React.FC<ProductModalProps> = ({
               {detail?.variations?.filter((v) => v.status).map((variation) => (
                 <div key={variation.id}>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                    {variation.name}
+                    {renderLocalized(variation.name)}
                     {variation.required && (
                       <span className="text-[10px] bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full font-medium">
-                        مطلوب
+                        {t('required_field')}
                       </span>
                     )}
                   </h3>
@@ -194,9 +203,9 @@ const ProductModal: React.FC<ProductModalProps> = ({
                                 : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
                             }`}
                           >
-                            {option.name}
+                            {renderLocalized(option.name)}
                             {option.final_price > 0 && (
-                              <span className="mr-1 opacity-75">
+                              <span className="ms-1 opacity-75">
                                 +{option.final_price.toFixed(2)}
                               </span>
                             )}
@@ -211,7 +220,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
               {addons.length > 0 && (
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2">
-                    إضافات
+                    {t('addons')}
                   </h3>
                   <div className="space-y-2">
                     {addons.map((addon) => {
@@ -238,12 +247,12 @@ const ProductModal: React.FC<ProductModalProps> = ({
                           {addon.image && (
                             <img
                               src={addon.image}
-                              alt={addon.name}
+                              alt={renderLocalized(addon.name)}
                               className="w-8 h-8 rounded-lg object-cover"
                             />
                           )}
                           <span className="text-sm font-medium text-slate-700 dark:text-slate-200 flex-1">
-                            {addon.name}
+                            {renderLocalized(addon.name)}
                           </span>
                           {selected && (
                             <div
@@ -280,12 +289,12 @@ const ProductModal: React.FC<ProductModalProps> = ({
               {/* Notes */}
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2">
-                  ملاحظات
+                  {t('notes')}
                 </h3>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="أي ملاحظات إضافية..."
+                  placeholder={t('notes_placeholder')}
                   rows={2}
                   className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 resize-none transition-all"
                 />
@@ -298,7 +307,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
         <div className="flex-shrink-0 p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
           {/* Quantity */}
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">الكمية</span>
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{t('quantity')}</span>
             <div className="flex items-center gap-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 px-1 py-1">
               <button
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -325,15 +334,15 @@ const ProductModal: React.FC<ProductModalProps> = ({
             className="w-full py-3.5 rounded-xl bg-gradient-to-l from-indigo-600 to-violet-600 text-white font-bold text-base hover:from-violet-600 hover:to-violet-600 active:scale-[0.98] transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 cursor-pointer"
           >
             <FiPlus className="w-5 h-5" />
-            <span>إضافة للسلة</span>
+            <span>{t('add_to_cart')}</span>
             <span className="bg-white/20 px-3 py-0.5 rounded-full text-sm">
-              {totalPrice.toFixed(2)} ر.س
+              {totalPrice.toFixed(2)} {t('currency')}
             </span>
           </button>
 
           {missingRequired.length > 0 && (
             <p className="text-center text-xs text-red-500 mt-2">
-              يرجى اختيار: {missingRequired.map((v) => v.name).join('، ')}
+              {t('please_select')}: {missingRequired.map((v) => renderLocalized(v.name) || v.name).join('، ')}
             </p>
           )}
         </div>

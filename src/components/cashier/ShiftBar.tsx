@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSquare, FiMonitor, FiClock, FiAlertCircle, FiSettings } from 'react-icons/fi';
 import { useShift } from '../../context/ShiftContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { EndShiftModal } from './EndShiftModal';
 
 interface ShiftBarProps {
@@ -11,6 +12,7 @@ interface ShiftBarProps {
 
 const ShiftBar: React.FC<ShiftBarProps> = () => {
   const navigate = useNavigate();
+  const { language, t } = useLanguage();
   const {
     activeShift,
     activeDevice,
@@ -59,7 +61,7 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
 
   if (hasActiveShift) {
     const startTimeFormatted = activeShift?.start
-      ? new Date(activeShift.start).toLocaleTimeString('ar-SA', {
+      ? new Date(activeShift.start).toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', {
           hour: '2-digit',
           minute: '2-digit',
         })
@@ -76,7 +78,7 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
               </span>
               <span className="text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                الشيفت نشط
+                {t('shift_active')}
               </span>
             </div>
 
@@ -91,7 +93,7 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
             {/* Start Time */}
             {startTimeFormatted && (
               <div className="hidden md:flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400/80">
-                <span>بدأ:</span>
+                <span>{t('shift_started_at')}:</span>
                 <span className="font-mono">{startTimeFormatted}</span>
               </div>
             )}
@@ -100,21 +102,21 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
             {elapsedTime && (
               <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/50 dark:bg-black/30 border border-emerald-500/20 text-xs font-mono font-bold text-emerald-800 dark:text-emerald-300">
                 <FiClock className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                <span>المدة: {elapsedTime}</span>
+                <span>{t('shift_duration')}: {elapsedTime}</span>
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-2 mr-auto">
+          <div className="flex items-center gap-2 ms-auto">
             {/* Link to Shift Page */}
             <button
               type="button"
               onClick={() => navigate('/dashboard/shift')}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/60 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
-              title="إدارة وتفاصيل الشيفت"
+              title={t('manage_shift')}
             >
               <FiSettings className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">إدارة الشيفت</span>
+              <span className="hidden sm:inline">{t('manage_shift')}</span>
             </button>
 
             {/* End Shift Button */}
@@ -125,7 +127,7 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-all shadow-md shadow-red-600/20 disabled:opacity-50 cursor-pointer"
             >
               <FiSquare className="w-3.5 h-3.5" />
-              <span>{isEndingShift ? 'جاري الإنهاء...' : 'إنهاء الشيفت'}</span>
+              <span>{isEndingShift ? t('ending_in_progress') : t('ending_shift_btn')}</span>
             </button>
           </div>
         </div>
@@ -148,7 +150,7 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
       <div className="flex items-center gap-2">
         <FiAlertCircle className="w-4 h-4 text-amber-500" />
         <span className="text-xs sm:text-sm font-bold">
-          تنبيه: يجب فتح وبدء الوردية لمباشرة عمليات البيع
+          {t('shift_notice_required')}
         </span>
       </div>
 
@@ -157,7 +159,7 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
         onClick={() => navigate('/dashboard/shift')}
         className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-colors cursor-pointer"
       >
-        <span>الانتقال لبدء الشيفت</span>
+        <span>{t('go_to_start_shift')}</span>
       </button>
     </div>
   );

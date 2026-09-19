@@ -1,6 +1,7 @@
 import React from 'react';
 import { FiAlertTriangle, FiClock, FiMonitor, FiUser, FiX, FiCheck } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import type { Shift, CashierDevice } from '../../types/cashier';
 
 interface EndShiftModalProps {
@@ -21,17 +22,18 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
   device,
 }) => {
   const { user } = useAuth();
+  const { language, dir, t } = useLanguage();
 
   if (!isOpen) return null;
 
   // Format start time if available
   const startTime = shift?.start
-    ? new Date(shift.start).toLocaleTimeString('ar-SA', {
+    ? new Date(shift.start).toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', {
         hour: '2-digit',
         minute: '2-digit',
       })
     : shift?.created_at
-    ? new Date(shift.created_at).toLocaleTimeString('ar-SA', {
+    ? new Date(shift.created_at).toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', {
         hour: '2-digit',
         minute: '2-digit',
       })
@@ -40,7 +42,7 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
-      dir="rtl"
+      dir={dir}
     >
       <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#121217] border border-slate-200 dark:border-white/10 p-6 sm:p-7 shadow-2xl shadow-slate-900/10 dark:shadow-black/80 text-slate-900 dark:text-white">
         {/* Close Button */}
@@ -48,7 +50,7 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
           type="button"
           onClick={onClose}
           disabled={isEnding}
-          className="absolute top-4 left-4 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+          className="absolute top-4 rtl:left-4 ltr:right-4 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
         >
           <FiX className="w-5 h-5" />
         </button>
@@ -60,10 +62,10 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
 
         {/* Title */}
         <h2 className="text-xl font-bold text-center text-slate-900 dark:text-white mb-2">
-          إنهاء الشيفت وتسجيل الخروج
+          {t('confirm_end_shift_title')}
         </h2>
         <p className="text-sm text-slate-500 dark:text-neutral-400 text-center mb-6 leading-relaxed">
-          هل أنت متأكد من رغبتك في إنهاء الشيفت الحالي؟ سيتم إغلاق الوردية وتسجيل الخروج من الموقع والعودة لصفحة تسجيل الدخول.
+          {t('confirm_end_shift_desc')}
         </p>
 
         {/* Shift Details Box */}
@@ -71,16 +73,16 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
           <div className="flex items-center justify-between text-slate-700 dark:text-neutral-300">
             <span className="flex items-center gap-2 text-slate-500 dark:text-neutral-400">
               <FiUser className="w-4 h-4 text-primary" />
-              <span>الكاشير المسجل:</span>
+              <span>{t('registered_cashier')}:</span>
             </span>
-            <span className="font-semibold text-slate-900 dark:text-white">{user?.name || 'غير محدد'}</span>
+            <span className="font-semibold text-slate-900 dark:text-white">{user?.name || t('unspecified')}</span>
           </div>
 
           {device && (
             <div className="flex items-center justify-between text-slate-700 dark:text-neutral-300">
               <span className="flex items-center gap-2 text-slate-500 dark:text-neutral-400">
                 <FiMonitor className="w-4 h-4 text-primary" />
-                <span>جهاز الكاشير:</span>
+                <span>{t('terminal_device')}:</span>
               </span>
               <span className="font-semibold text-slate-900 dark:text-white">{device.name}</span>
             </div>
@@ -90,7 +92,7 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
             <div className="flex items-center justify-between text-slate-700 dark:text-neutral-300">
               <span className="flex items-center gap-2 text-slate-500 dark:text-neutral-400">
                 <FiClock className="w-4 h-4 text-amber-500 dark:text-amber-400" />
-                <span>وقت بدء الشيفت:</span>
+                <span>{t('start_time')}:</span>
               </span>
               <span className="font-semibold text-slate-900 dark:text-white font-mono">{startTime}</span>
             </div>
@@ -105,7 +107,7 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
             disabled={isEnding}
             className="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] text-slate-700 hover:text-slate-900 dark:text-neutral-300 dark:hover:text-white font-semibold text-sm transition-colors cursor-pointer disabled:opacity-50"
           >
-            إلغاء
+            {t('cancel')}
           </button>
           <button
             type="button"
@@ -118,7 +120,7 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
             ) : (
               <>
                 <FiCheck className="w-4 h-4" />
-                <span>إنهاء الشيفت والخروج</span>
+                <span>{t('ending_shift_btn')}</span>
               </>
             )}
           </button>

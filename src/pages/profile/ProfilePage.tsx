@@ -1,23 +1,18 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { FiUser, FiMail, FiLogOut, FiSun, FiMoon, FiCheck, FiArrowRight, FiType, FiDroplet } from 'react-icons/fi';
+import { useLanguage } from '../../context/LanguageContext';
+import { FiUser, FiMail, FiLogOut, FiSun, FiMoon, FiCheck, FiArrowRight, FiArrowLeft, FiType, FiDroplet, FiGlobe } from 'react-icons/fi';
 import { renderName } from '../../utils/helpers';
 import { Link, useLocation } from 'react-router-dom';
 
 const colors = [
-  { id: 'blue', color: '#3b82f6', name: 'أزرق' },
-  { id: 'green', color: '#10b981', name: 'أخضر' },
-  { id: 'red', color: '#ef4444', name: 'أحمر' },
-  { id: 'purple', color: '#8b5cf6', name: 'بنفسجي' },
-  { id: 'orange', color: '#f97316', name: 'برتقالي' },
-  { id: 'teal', color: '#14b8a6', name: 'فيروزي' },
-] as const;
-
-const fontSizes = [
-  { id: 'small', label: 'ص', desc: 'صغير' },
-  { id: 'medium', label: 'م', desc: 'متوسط' },
-  { id: 'large', label: 'ك', desc: 'كبير' },
+  { id: 'blue', color: '#3b82f6', nameAr: 'أزرق', nameEn: 'Blue' },
+  { id: 'green', color: '#10b981', nameAr: 'أخضر', nameEn: 'Green' },
+  { id: 'red', color: '#ef4444', nameAr: 'أحمر', nameEn: 'Red' },
+  { id: 'purple', color: '#8b5cf6', nameAr: 'بنفسجي', nameEn: 'Purple' },
+  { id: 'orange', color: '#f97316', nameAr: 'برتقالي', nameEn: 'Orange' },
+  { id: 'teal', color: '#14b8a6', nameAr: 'فيروزي', nameEn: 'Teal' },
 ] as const;
 
 interface ProfilePageProps {
@@ -27,23 +22,30 @@ interface ProfilePageProps {
 const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
   const { user, logout } = useAuth();
   const { theme, setTheme, themeColor, setThemeColor, fontSize, setFontSize } = useTheme();
+  const { language, dir, setLanguage, t } = useLanguage();
   const location = useLocation();
 
   const resolvedBack = backTo || (location.pathname.startsWith('/table') ? '/table' : '/dashboard');
 
+  const fontSizes = [
+    { id: 'small', label: language === 'ar' ? 'ص' : 'S', desc: t('font_small') },
+    { id: 'medium', label: language === 'ar' ? 'م' : 'M', desc: t('font_medium') },
+    { id: 'large', label: language === 'ar' ? 'ك' : 'L', desc: t('font_large') },
+  ] as const;
+
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white transition-colors" dir="rtl">
+    <div className="min-h-screen w-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white transition-colors" dir={dir}>
       <div className="max-w-6xl mx-auto pb-12 p-4 sm:p-6">
         {/* Header / Back Button */}
         <div className="flex items-center gap-4 mb-8">
           <Link 
             to={resolvedBack} 
             className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white dark:bg-[#111111] text-slate-500 dark:text-neutral-300 hover:text-primary dark:hover:text-primary shadow-sm border border-slate-200/60 dark:border-white/10 hover:shadow-md transition-all cursor-pointer"
-            title="الرجوع"
+            title={t('back')}
           >
-            <FiArrowRight className="w-6 h-6" />
+            {dir === 'rtl' ? <FiArrowRight className="w-6 h-6" /> : <FiArrowLeft className="w-6 h-6" />}
           </Link>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">إعدادات الحساب</h1>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t('account_settings')}</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -65,26 +67,26 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                 </div>
                 
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                  {user ? renderName(user.name) : 'خدمة الطاولات'}
+                  {user ? renderName(user.name) : t('cashier')}
                 </h2>
                 <span className="px-5 py-2 bg-primary/10 text-primary rounded-2xl text-sm font-bold mb-8 shadow-inner">
-                  {user?.role || 'جلسة طاولات عامة'}
+                  {user?.role || t('role_cashier')}
                 </span>
                 
                 {user?.email ? (
-                  <div className="w-full bg-slate-50 dark:bg-white/[0.03] rounded-2xl p-4 mb-6 flex items-center gap-4 text-left border border-slate-100 dark:border-white/5">
+                  <div className="w-full bg-slate-50 dark:bg-white/[0.03] rounded-2xl p-4 mb-6 flex items-center gap-4 text-start border border-slate-100 dark:border-white/5">
                     <div className="w-12 h-12 rounded-xl bg-white dark:bg-white/[0.06] flex items-center justify-center text-slate-400 shadow-sm shrink-0">
                       <FiMail className="w-6 h-6" />
                     </div>
-                    <div className="flex-1 min-w-0 overflow-hidden text-right">
-                      <p className="text-xs text-slate-400 font-medium mb-1">البريد الإلكتروني</p>
+                    <div className="flex-1 min-w-0 overflow-hidden text-start">
+                      <p className="text-xs text-slate-400 font-medium mb-1">{t('email')}</p>
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate" dir="ltr">{user.email}</p>
                     </div>
                   </div>
                 ) : (
                   <div className="w-full bg-slate-50 dark:bg-white/[0.03] rounded-2xl p-4 mb-6 text-center border border-slate-100 dark:border-white/5">
                     <p className="text-xs text-slate-400">
-                      يمكنك ضبط تفضيلات المظهر والخط والألوان لنظام الطاولات من هنا
+                      {t('choose_language_desc')}
                     </p>
                   </div>
                 )}
@@ -94,8 +96,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                     onClick={logout}
                     className="w-full py-4 rounded-2xl bg-red-50 dark:bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-all font-bold text-base flex items-center justify-center gap-2 group cursor-pointer"
                   >
-                    <FiLogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                    تسجيل الخروج
+                    <FiLogOut className="w-5 h-5 rtl:group-hover:-translate-x-1 ltr:group-hover:translate-x-1 transition-transform" />
+                    {t('logout')}
                   </button>
                 ) : (
                   <Link
@@ -103,7 +105,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                     className="w-full py-4 rounded-2xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all font-bold text-base flex items-center justify-center gap-2 group cursor-pointer"
                   >
                     <FiUser className="w-5 h-5" />
-                    تسجيل دخول موظف
+                    {t('logout')}
                   </Link>
                 )}
               </div>
@@ -113,6 +115,49 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
           {/* Right Column: Settings (lg:col-span-8) */}
           <div className="lg:col-span-8 space-y-6">
             
+            {/* Language Selection Card */}
+            <div className="bg-white dark:bg-[#111111] rounded-[2rem] p-8 shadow-sm border border-slate-200/60 dark:border-white/10 transition-all hover:shadow-md">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-primary">
+                  <FiGlobe className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('language')}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('choose_language_desc')}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setLanguage('ar')}
+                  className={`relative overflow-hidden flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 transition-all cursor-pointer ${
+                    language === 'ar'
+                      ? 'border-primary bg-primary/10 text-primary shadow-sm ring-4 ring-primary/10'
+                      : 'border-slate-100 dark:border-white/10 dark:bg-white/[0.02] text-slate-500 dark:text-neutral-400 hover:border-slate-300 dark:hover:border-white/20'
+                  }`}
+                >
+                  {language === 'ar' && <div className="absolute top-4 rtl:left-4 ltr:right-4 w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />}
+                  <span className="text-2xl font-black">عربي</span>
+                  <span className="font-bold text-sm">العربية (Arabic)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setLanguage('en')}
+                  className={`relative overflow-hidden flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border-2 transition-all cursor-pointer ${
+                    language === 'en'
+                      ? 'border-primary bg-primary/10 text-primary shadow-sm ring-4 ring-primary/10'
+                      : 'border-slate-100 dark:border-white/10 dark:bg-white/[0.02] text-slate-500 dark:text-neutral-400 hover:border-slate-300 dark:hover:border-white/20'
+                  }`}
+                >
+                  {language === 'en' && <div className="absolute top-4 rtl:left-4 ltr:right-4 w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />}
+                  <span className="text-2xl font-black">EN</span>
+                  <span className="font-bold text-sm">English</span>
+                </button>
+              </div>
+            </div>
+
             {/* Appearance Section */}
             <div className="bg-white dark:bg-[#111111] rounded-[2rem] p-8 shadow-sm border border-slate-200/60 dark:border-white/10 transition-all hover:shadow-md">
               <div className="flex items-center gap-4 mb-8">
@@ -120,8 +165,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                   <FiSun className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">المظهر العام</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">اختر وضع الإضاءة المناسب لعينيك</p>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('theme_mode')}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('theme_mode_desc')}</p>
                 </div>
               </div>
 
@@ -134,9 +179,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                       : 'border-slate-100 dark:border-white/10 dark:bg-white/[0.02] text-slate-500 dark:text-neutral-400 hover:border-slate-300 dark:hover:border-white/20'
                   }`}
                 >
-                  {theme === 'light' && <div className="absolute top-4 left-4 w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></div>}
+                  {theme === 'light' && <div className="absolute top-4 rtl:left-4 ltr:right-4 w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></div>}
                   <FiSun className={`w-10 h-10 ${theme === 'light' ? 'text-amber-500' : ''}`} />
-                  <span className="font-bold text-lg">الوضع الفاتح</span>
+                  <span className="font-bold text-lg">{t('light_mode')}</span>
                 </button>
                 
                 <button
@@ -147,9 +192,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                       : 'border-slate-100 dark:border-white/10 dark:bg-white/[0.02] text-slate-500 dark:text-neutral-400 hover:border-slate-300 dark:hover:border-white/20'
                   }`}
                 >
-                  {theme === 'dark' && <div className="absolute top-4 left-4 w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></div>}
+                  {theme === 'dark' && <div className="absolute top-4 rtl:left-4 ltr:right-4 w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></div>}
                   <FiMoon className={`w-10 h-10 ${theme === 'dark' ? 'text-primary' : ''}`} />
-                  <span className="font-bold text-lg">الوضع الداكن</span>
+                  <span className="font-bold text-lg">{t('dark_mode')}</span>
                 </button>
               </div>
             </div>
@@ -161,8 +206,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                   <FiDroplet className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">اللون الأساسي</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">قم بتخصيص لون النظام حسب رغبتك</p>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('theme_color')}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('theme_color_desc')}</p>
                 </div>
               </div>
 
@@ -171,7 +216,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                   <button
                     key={c.id}
                     onClick={() => setThemeColor(c.id as any)}
-                    title={c.name}
+                    title={language === 'ar' ? c.nameAr : c.nameEn}
                     className={`group relative flex flex-col items-center gap-3 cursor-pointer transition-transform ${themeColor === c.id ? '-translate-y-2' : 'hover:-translate-y-1'}`}
                   >
                     <div
@@ -186,7 +231,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                       {themeColor === c.id && <FiCheck className="text-white w-7 h-7 animate-in zoom-in duration-300" />}
                     </div>
                     <span className={`text-xs font-bold transition-colors ${themeColor === c.id ? 'text-slate-900 dark:text-white' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`}>
-                      {c.name}
+                      {language === 'ar' ? c.nameAr : c.nameEn}
                     </span>
                   </button>
                 ))}
@@ -200,8 +245,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                   <FiType className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">حجم النصوص</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">اضبط حجم الخط ليتناسب مع شاشتك</p>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('font_size')}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('font_size_desc')}</p>
                 </div>
               </div>
 

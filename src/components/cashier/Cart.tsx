@@ -1,5 +1,7 @@
-﻿import React from 'react';
+import React from 'react';
 import { FiTrash2, FiPlus, FiMinus, FiShoppingCart } from 'react-icons/fi';
+import { useOrderType } from '../../context/OrderTypeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import type { ApiCartItem, ApiCartGrandTotals } from '../../types/cashier';
 
 interface CartProps {
@@ -21,19 +23,24 @@ const Cart: React.FC<CartProps> = ({
   onClearCart,
   onCheckoutClick,
 }) => {
+  const { orderTypeLabel } = useOrderType();
+  const { t, renderLocalized } = useLanguage();
   const subtotal = grandTotals?.grand_total_price || 0;
   const taxAmount = grandTotals?.grand_total_tax || 0;
   const total = grandTotals?.grand_final_price || 0;
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-800 border-e border-slate-200 dark:border-slate-700">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
         <div className="flex items-center gap-2">
           <FiShoppingCart className="w-5 h-5 text-indigo-600 dark:text-indigo-600" />
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-            السلة
+            {t('cart')}
           </h2>
+          <span className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-xs font-bold border border-primary/20">
+            {orderTypeLabel}
+          </span>
           {items.length > 0 && (
             <span className="bg-indigo-500/20 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-600 text-xs font-bold px-2 py-0.5 rounded-full">
               {items.reduce((sum, i) => sum + i.quantity, 0)}
@@ -45,7 +52,7 @@ const Cart: React.FC<CartProps> = ({
             onClick={onClearCart}
             className="text-xs text-red-500 hover:text-red-600 font-medium hover:bg-red-50 dark:hover:bg-red-500/10 px-2 py-1 rounded-lg transition-colors cursor-pointer"
           >
-            مسح الكل
+            {t('clear_all')}
           </button>
         )}
       </div>
@@ -58,10 +65,10 @@ const Cart: React.FC<CartProps> = ({
               <FiShoppingCart className="w-8 h-8 text-slate-300 dark:text-slate-600" />
             </div>
             <p className="text-sm text-slate-400 font-medium">
-              السلة فارغة
+              {t('cart_empty')}
             </p>
             <p className="text-xs text-slate-300 dark:text-slate-600 mt-1">
-              اضغط على أي منتج لإضافته
+              {t('click_product_to_add')}
             </p>
           </div>
         ) : (
@@ -75,7 +82,7 @@ const Cart: React.FC<CartProps> = ({
                 {item.product?.image && (
                   <img
                     src={item.product.image}
-                    alt={item.product.name || 'product'}
+                    alt={renderLocalized(item.product.name) || 'product'}
                     className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
                   />
                 )}
@@ -83,20 +90,20 @@ const Cart: React.FC<CartProps> = ({
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <h4 className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-                    {item.product?.name || 'Unknown'}
+                    {renderLocalized(item.product?.name) || 'Unknown'}
                   </h4>
 
                   {/* Variations */}
                   {item.variations?.length > 0 && (
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                      {item.variations.flatMap((v) => v.options.map((o) => o.name)).join(' · ')}
+                      {item.variations.flatMap((v) => v.options.map((o) => renderLocalized(o.name))).join(' · ')}
                     </p>
                   )}
 
                   {/* Addons */}
                   {item.addons?.length > 0 && (
                     <p className="text-[11px] text-indigo-600 truncate">
-                      + {item.addons.map((a) => a.name).join(', ')}
+                      + {item.addons.map((a) => renderLocalized(a.name)).join(', ')}
                     </p>
                   )}
 
@@ -139,7 +146,7 @@ const Cart: React.FC<CartProps> = ({
                   </button>
                 </div>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-600">
-                  {(item.total_final_price || 0).toFixed(2)} ر.س
+                  {(item.total_final_price || 0).toFixed(2)} {t('currency')}
                 </span>
               </div>
             </div>
@@ -152,18 +159,18 @@ const Cart: React.FC<CartProps> = ({
         <div className="flex-shrink-0 border-t border-slate-200 dark:border-slate-700 p-4 space-y-3 bg-slate-50/50 dark:bg-slate-800/50">
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between text-slate-500">
-              <span>المجموع الفرعي</span>
-              <span>{subtotal.toFixed(2)} ر.س</span>
+              <span>{t('subtotal')}</span>
+              <span>{subtotal.toFixed(2)} {t('currency')}</span>
             </div>
             <div className="flex justify-between text-slate-500">
-              <span>الضريبة (15%)</span>
-              <span>{taxAmount.toFixed(2)} ر.س</span>
+              <span>{t('tax_15')}</span>
+              <span>{taxAmount.toFixed(2)} {t('currency')}</span>
             </div>
             <div className="h-px bg-slate-200 dark:bg-slate-700 my-1" />
             <div className="flex justify-between text-lg font-bold text-slate-900 dark:text-white">
-              <span>الإجمالي</span>
+              <span>{t('total')}</span>
               <span className="text-indigo-600 dark:text-indigo-600">
-                {total.toFixed(2)} ر.س
+                {total.toFixed(2)} {t('currency')}
               </span>
             </div>
           </div>
@@ -174,7 +181,7 @@ const Cart: React.FC<CartProps> = ({
             disabled={isLoading}
             className="w-full py-3.5 rounded-xl bg-gradient-to-l from-emerald-600 to-teal-600 text-white font-bold text-base hover:from-emerald-700 hover:to-teal-700 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            ✅ إتمام الطلب
+            ✅ {t('checkout')}
           </button>
         </div>
       )}

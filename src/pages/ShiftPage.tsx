@@ -10,16 +10,19 @@ import {
   FiCheckCircle,
   FiAlertCircle,
   FiArrowLeft,
+  FiArrowRight,
   FiRefreshCw,
   FiLogOut,
   FiShoppingBag,
   FiLayers,
   FiSun,
   FiMoon,
+  FiGlobe,
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useShift } from '../context/ShiftContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { cashierApi } from '../services/cashierService';
 import { EndShiftModal } from '../components/cashier/EndShiftModal';
 
@@ -27,6 +30,7 @@ const ShiftPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { language, dir, toggleLanguage, t } = useLanguage();
   const {
     shiftStatus,
     isCheckingShift,
@@ -73,7 +77,7 @@ const ShiftPage: React.FC = () => {
     try {
       const selectedDevice = cashiers.find((c) => c.id === Number(selectedCashierId));
       await startShift(Number(selectedCashierId), selectedDevice);
-      setActionSuccessMessage('تم بدء الشيفت بنجاح! جاري التوجيه لنقطة البيع...');
+      setActionSuccessMessage(t('shift_started_success'));
       setTimeout(() => {
         navigate('/dashboard', { replace: true });
       }, 1000);
@@ -97,7 +101,7 @@ const ShiftPage: React.FC = () => {
   return (
     <div
       className="min-h-screen relative flex flex-col justify-between bg-slate-50 dark:bg-[#070709] text-slate-900 dark:text-white p-4 sm:p-6 lg:p-8 overflow-x-hidden select-none w-full transition-colors duration-300"
-      dir="rtl"
+      dir={dir}
     >
       {/* Background Ambient Glows */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -124,18 +128,29 @@ const ShiftPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-lg font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-              بوابة الورديات <span className="text-primary font-normal">| Shift</span>
+              {t('shift_portal')} <span className="text-primary font-normal">| Shift</span>
             </h1>
-            <p className="text-xs text-slate-500 dark:text-neutral-400">إدارة وفتح الشيفت لموظفي الكاشير</p>
+            <p className="text-xs text-slate-500 dark:text-neutral-400">{t('shift_management')}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5">
+          {/* Language Switcher */}
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            title={t('language')}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-sm"
+          >
+            <FiGlobe className="w-3.5 h-3.5 text-primary" />
+            <span className="uppercase text-[11px]">{language === 'ar' ? 'EN' : 'عربي'}</span>
+          </button>
+
           {/* Theme Toggle Button */}
           <button
             type="button"
             onClick={toggleTheme}
-            title={theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'}
+            title={theme === 'dark' ? t('light_mode') : t('dark_mode')}
             className="p-2.5 rounded-xl bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-sm"
           >
             {theme === 'dark' ? (
@@ -150,22 +165,22 @@ const ShiftPage: React.FC = () => {
             type="button"
             onClick={() => refetchShift()}
             disabled={isCheckingShift}
-            title="تحديث حالة الشيفت"
+            title={t('refresh_status')}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-sm"
           >
             <FiRefreshCw className={`w-3.5 h-3.5 ${isCheckingShift ? 'animate-spin text-primary' : ''}`} />
-            <span className="hidden sm:inline">تحديث الحالة</span>
+            <span className="hidden sm:inline">{t('refresh_status')}</span>
           </button>
 
           {/* Logout */}
           <button
             type="button"
             onClick={logout}
-            title="تسجيل الخروج"
+            title={t('logout')}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-500/20 text-xs font-semibold text-red-600 dark:text-red-400 transition-all cursor-pointer shadow-sm"
           >
             <FiLogOut className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">خروج</span>
+            <span className="hidden sm:inline">{t('logout')}</span>
           </button>
         </div>
       </header>
@@ -180,19 +195,19 @@ const ShiftPage: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-slate-900 dark:text-white">{user?.name || 'الكاشير'}</span>
+                <span className="text-sm font-bold text-slate-900 dark:text-white">{user?.name || t('cashier')}</span>
                 <span className="px-2 py-0.5 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30 text-primary text-[10px] font-bold">
-                  كاشير معتمد
+                  {t('verified_cashier')}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{user?.email || 'حساب الكاشير'}</p>
+              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{user?.email || t('cashier_account')}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-neutral-300 bg-slate-100 dark:bg-white/[0.02] px-3 py-2 rounded-xl border border-slate-200 dark:border-white/5 self-start sm:self-auto">
             <FiClock className="w-4 h-4 text-amber-500 dark:text-amber-400" />
             <span className="font-mono">
-              {currentTime.toLocaleTimeString('ar-SA', {
+              {currentTime.toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
@@ -200,7 +215,7 @@ const ShiftPage: React.FC = () => {
             </span>
             <span className="text-slate-400 dark:text-neutral-500">•</span>
             <span>
-              {currentTime.toLocaleDateString('ar-SA', {
+              {currentTime.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
                 weekday: 'short',
                 day: 'numeric',
                 month: 'short',
@@ -214,7 +229,7 @@ const ShiftPage: React.FC = () => {
           <div className="mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-300 text-sm flex items-start gap-3 animate-in fade-in shadow-sm">
             <FiAlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="font-bold">حدث خطأ</p>
+              <p className="font-bold">{t('error_occurred')}</p>
               <p className="text-xs text-red-500/90 dark:text-red-400/90 mt-0.5">{shiftError}</p>
             </div>
           </div>
@@ -232,8 +247,8 @@ const ShiftPage: React.FC = () => {
         {isCheckingShift ? (
           <div className="rounded-3xl bg-white/90 dark:bg-[#101014]/90 border border-slate-200 dark:border-white/10 p-10 flex flex-col items-center justify-center text-center shadow-xl backdrop-blur-2xl">
             <div className="w-12 h-12 border-3 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
-            <p className="text-sm font-bold text-slate-900 dark:text-white">جاري التحقق من حالة الوردية والشيفت...</p>
-            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">يرجى الانتظار لحظات</p>
+            <p className="text-sm font-bold text-slate-900 dark:text-white">{t('checking_shift')}</p>
+            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">{t('please_wait')}</p>
           </div>
         ) : hasActiveShift ? (
           /* ── Case 1: Shift is already ACTIVE or needs to be closed ── */
@@ -249,10 +264,10 @@ const ShiftPage: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">يوجد شيفت نشط حالياً</h2>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('active_shift_exists')}</h2>
                 </div>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5 font-semibold">
-                  {shiftStatus?.message || 'تم فتح الوردية مسبقاً ويمكنك متابعة المبيعات أو إغلاقها'}
+                  {shiftStatus?.message || t('shift_ready')}
                 </p>
               </div>
             </div>
@@ -260,16 +275,16 @@ const ShiftPage: React.FC = () => {
             {/* Info Box */}
             <div className="rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 p-5 mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
               <div className="space-y-1">
-                <span className="text-slate-500 dark:text-neutral-400">حالة النظام:</span>
+                <span className="text-slate-500 dark:text-neutral-400">{t('system_status')}:</span>
                 <p className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  الشيفت جاهز للعمل
+                  {t('shift_ready')}
                 </p>
               </div>
 
               {activeDevice && (
                 <div className="space-y-1">
-                  <span className="text-slate-500 dark:text-neutral-400">نقطة البيع (الجهاز):</span>
+                  <span className="text-slate-500 dark:text-neutral-400">{t('terminal_device')}:</span>
                   <p className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                     <FiMonitor className="w-4 h-4 text-primary" />
                     {activeDevice.name}
@@ -279,9 +294,9 @@ const ShiftPage: React.FC = () => {
 
               {activeShift?.start && (
                 <div className="space-y-1">
-                  <span className="text-slate-500 dark:text-neutral-400">وقت البدء:</span>
+                  <span className="text-slate-500 dark:text-neutral-400">{t('start_time')}:</span>
                   <p className="text-sm font-bold text-slate-900 dark:text-white font-mono">
-                    {new Date(activeShift.start).toLocaleTimeString('ar-SA', {
+                    {new Date(activeShift.start).toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', {
                       hour: '2-digit',
                       minute: '2-digit',
                     })}
@@ -290,9 +305,9 @@ const ShiftPage: React.FC = () => {
               )}
 
               <div className="space-y-1">
-                <span className="text-slate-500 dark:text-neutral-400">إشعار الخادم:</span>
+                <span className="text-slate-500 dark:text-neutral-400">{t('server_notice')}:</span>
                 <p className="text-xs font-semibold text-amber-600 dark:text-amber-300">
-                  {shiftStatus?.message || 'يرجى غلق الشيفت السابق اولا عند الانتهاء'}
+                  {shiftStatus?.message || t('active_shift_exists')}
                 </p>
               </div>
             </div>
@@ -305,8 +320,12 @@ const ShiftPage: React.FC = () => {
                 onClick={() => navigate('/dashboard')}
                 className="w-full py-4 px-5 rounded-2xl bg-gradient-to-l from-primary to-indigo-600 hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-primary/25 transition-all flex items-center justify-center gap-2 cursor-pointer group"
               >
-                <span>الدخول مباشرة إلى نقطة البيع</span>
-                <FiArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                <span>{t('enter_pos_direct')}</span>
+                {dir === 'rtl' ? (
+                  <FiArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                ) : (
+                  <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                )}
               </button>
 
               {/* Option 2: End Shift */}
@@ -317,7 +336,7 @@ const ShiftPage: React.FC = () => {
                 className="w-full py-4 px-5 rounded-2xl bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-500/30 hover:border-red-300 dark:hover:border-red-500/50 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
               >
                 <FiSquare className="w-5 h-5" />
-                <span>إنهاء الشيفت وتسجيل الخروج</span>
+                <span>{t('end_shift_and_logout')}</span>
               </button>
             </div>
           </div>
@@ -332,7 +351,7 @@ const ShiftPage: React.FC = () => {
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold">
                   <FiLayers className="w-3.5 h-3.5" />
-                  <span>خطوة إلزامية لبدء المبيعات</span>
+                  <span>{t('mandatory_step')}</span>
                 </div>
                 {shiftStatus?.message && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold shadow-sm">
@@ -341,27 +360,27 @@ const ShiftPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white">بدء وردية جديدة (Start Shift)</h2>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white">{t('start_new_shift')}</h2>
               <p className="text-sm text-slate-600 dark:text-neutral-400 mt-1">
                 {shiftStatus?.message
-                  ? `${shiftStatus.message} — يرجى تحديد جهاز الكاشير للبدء في استلام الطلبات.`
-                  : 'يرجى تحديد جهاز ونقطة البيع التابع لها للبدء في استلام الطلبات وإصدار الفواتير.'}
+                  ? `${shiftStatus.message} — ${t('start_shift_instruction')}`
+                  : t('start_shift_instruction')}
               </p>
             </div>
 
             {/* Device Selector */}
             <div className="space-y-3 mb-8">
               <label className="block text-xs font-bold text-slate-700 dark:text-neutral-300">
-                اختر جهاز الكاشير (نقطة البيع)
+                {t('choose_cashier_device')}
               </label>
 
               {loadingCashiers ? (
                 <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 text-center text-xs text-slate-500 dark:text-neutral-400">
-                  جاري تحميل أجهزة الكاشير المتاحة...
+                  {t('loading_devices')}
                 </div>
               ) : cashiers.length === 0 ? (
                 <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 text-xs shadow-sm">
-                  لم يتم العثور على أجهزة كاشير مسجلة في الفرع. يرجى التواصل مع الإدارة.
+                  {t('no_devices')}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -390,7 +409,7 @@ const ShiftPage: React.FC = () => {
                           <div>
                             <span className="block text-sm font-bold text-slate-900 dark:text-white">{cashier.name}</span>
                             <span className="block text-[11px] text-slate-500 dark:text-neutral-400">
-                              معرّف الجهاز: #{cashier.id}
+                              {t('device_id')}: #{cashier.id}
                             </span>
                           </div>
                         </div>
@@ -421,13 +440,13 @@ const ShiftPage: React.FC = () => {
               {isStartingShift ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>جاري بدء الشيفت...</span>
+                  <span>{t('starting_shift')}</span>
                 </>
               ) : (
                 <>
                   <FiPlay className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" />
                   <span>
-                    بدء الشيفت الآن {selectedDevice ? `(${selectedDevice.name})` : ''}
+                    {t('start_shift_now')} {selectedDevice ? `(${selectedDevice.name})` : ''}
                   </span>
                 </>
               )}
@@ -438,7 +457,7 @@ const ShiftPage: React.FC = () => {
 
       {/* Footer */}
       <footer className="relative z-10 w-full text-center py-4 border-t border-slate-200 dark:border-white/5 text-xs text-slate-500 dark:text-neutral-500">
-        نظام الكاشير ونقاط البيع POS &copy; {new Date().getFullYear()} - جميع الحقوق محفوظة
+        POS &copy; {new Date().getFullYear()} - {t('all_rights_reserved')}
       </footer>
 
       {/* End Shift Confirmation Modal */}

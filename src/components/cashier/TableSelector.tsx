@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { cashierApi } from '../../services/cashierService';
+import { useLanguage } from '../../context/LanguageContext';
 import { FiMonitor } from 'react-icons/fi';
 
 interface TableSelectorProps {
@@ -9,6 +10,7 @@ interface TableSelectorProps {
 }
 
 const TableSelector: React.FC<TableSelectorProps> = ({ selectedTableId, onSelectTable }) => {
+  const { language, renderLocalized } = useLanguage();
   const [selectedHallId, setSelectedHallId] = useState<number | null>(null);
 
   // Fetch Halls
@@ -42,7 +44,9 @@ const TableSelector: React.FC<TableSelectorProps> = ({ selectedTableId, onSelect
   if (halls.length === 0) {
     return (
       <div className="text-center py-8 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
-        <p className="text-slate-500 dark:text-slate-400">لا توجد صالات متاحة حالياً.</p>
+        <p className="text-slate-500 dark:text-slate-400">
+          {language === 'ar' ? 'لا توجد صالات متاحة حالياً.' : 'No halls available currently.'}
+        </p>
       </div>
     );
   }
@@ -56,13 +60,13 @@ const TableSelector: React.FC<TableSelectorProps> = ({ selectedTableId, onSelect
             key={hall.id}
             type="button"
             onClick={() => setSelectedHallId(hall.id)}
-            className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+            className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer ${
               selectedHallId === hall.id
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25 scale-105'
                 : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
             }`}
           >
-            {hall.name}
+            {renderLocalized(hall.name)}
           </button>
         ))}
       </div>
@@ -76,7 +80,9 @@ const TableSelector: React.FC<TableSelectorProps> = ({ selectedTableId, onSelect
         ) : tables.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
             <FiMonitor className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3" />
-            <p className="text-slate-500 dark:text-slate-400">لا توجد طاولات في هذه الصالة.</p>
+            <p className="text-slate-500 dark:text-slate-400">
+              {language === 'ar' ? 'لا توجد طاولات في هذه الصالة.' : 'No tables in this hall.'}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
@@ -113,7 +119,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({ selectedTableId, onSelect
                     }`}
                   />
                   <span className="font-bold text-sm text-center line-clamp-1 break-words w-full">
-                    {table.name}
+                    {renderLocalized(table.name)}
                   </span>
                   
                   {/* Status Indicator */}

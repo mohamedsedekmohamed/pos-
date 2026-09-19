@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cashierApi } from '../services/cashierService';
 import { useShift } from '../context/ShiftContext';
+import { useOrderType } from '../context/OrderTypeContext';
 import CategoryTabs from '../components/cashier/CategoryTabs';
 import ProductGrid from '../components/cashier/ProductGrid';
 import Cart from '../components/cashier/Cart';
@@ -14,6 +15,7 @@ import type { Product, AddToCartPayload, UpdateCartPayload, CheckoutPayload } fr
 const DashboardHome: React.FC = () => {
   const navigate = useNavigate();
   const { hasActiveShift, isCheckingShift } = useShift();
+  const { orderType } = useOrderType();
 
   // Redirect to shift page if no active shift is found
   useEffect(() => {
@@ -52,8 +54,8 @@ const DashboardHome: React.FC = () => {
 
   // ── Cart API ──
   const { data: cartData, isLoading: loadingCart } = useQuery({
-    queryKey: ['cart', 'takeaway'],
-    queryFn: () => cashierApi.getCart('takeaway'),
+    queryKey: ['cart', orderType],
+    queryFn: () => cashierApi.getCart(orderType),
   });
 
   const cartItems = cartData?.data || [];
@@ -111,7 +113,7 @@ const DashboardHome: React.FC = () => {
       }
 
       const updatePayload: UpdateCartPayload = {
-        module: (item.module || 'takeaway') as 'takeaway' | 'dinein' | 'delivery',
+        module: orderType,
         quantity: newQty,
         notes: item.notes,
         variations: item.variations?.map((v) => ({
