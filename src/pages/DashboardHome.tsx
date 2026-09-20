@@ -17,15 +17,15 @@ import type { Product, AddToCartPayload, UpdateCartPayload, CheckoutPayload } fr
 const DashboardHome: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { hasActiveShift, isCheckingShift, activeShift, activeDevice } = useShift();
+  const { hasActiveShift, isCheckingShift, isEndModalOpen, activeShift, activeDevice } = useShift();
   const { orderType, orderTypeLabel } = useOrderType();
 
-  // Redirect to shift page if no active shift is found
+  // Redirect to shift page if no active shift is found (and modal is not open)
   useEffect(() => {
-    if (!isCheckingShift && !hasActiveShift) {
+    if (!isCheckingShift && !hasActiveShift && !isEndModalOpen) {
       navigate('/dashboard/shift', { replace: true });
     }
-  }, [isCheckingShift, hasActiveShift, navigate]);
+  }, [isCheckingShift, hasActiveShift, isEndModalOpen, navigate]);
 
   // ── State ──
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);

@@ -115,6 +115,25 @@ export interface Shift {
   cashier_man_id: number;
   created_at: string;
   updated_at: string;
+  default_total_amount?: number;
+  total_mony?: number;
+  deficit?: number;
+  cashier_name?: string;
+  branch_name?: string | null;
+  cashier_man_name?: string;
+  cashier_man?: any;
+  cashier?: any;
+  branch?: any;
+}
+
+export interface EndShiftPayload {
+  total_mony: number;
+}
+
+export interface EndShiftResult extends Shift {
+  default_total_amount: number;
+  total_mony: number;
+  deficit: number;
 }
 
 // ── API Cart ──

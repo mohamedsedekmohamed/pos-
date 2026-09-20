@@ -44,11 +44,13 @@ const ShiftPage: React.FC = () => {
     isEndingShift,
     shiftError,
     clearShiftError,
+    isEndModalOpen,
+    openEndModal,
+    closeEndModal,
   } = useShift();
 
   const [selectedCashierId, setSelectedCashierId] = useState<number | ''>('');
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
-  const [isEndModalOpen, setIsEndModalOpen] = useState(false);
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
 
   // Live Clock
@@ -86,14 +88,9 @@ const ShiftPage: React.FC = () => {
     }
   };
 
-  const handleConfirmEndShift = async () => {
+  const handleConfirmEndShift = async (totalMony: number) => {
     clearShiftError();
-    try {
-      await endShift(true);
-      setIsEndModalOpen(false);
-    } catch {
-      // Error handled in context
-    }
+    return await endShift(totalMony, false);
   };
 
   const selectedDevice = cashiers.find((c) => c.id === Number(selectedCashierId));
@@ -331,7 +328,7 @@ const ShiftPage: React.FC = () => {
               {/* Option 2: End Shift */}
               <button
                 type="button"
-                onClick={() => setIsEndModalOpen(true)}
+                onClick={openEndModal}
                 disabled={isEndingShift}
                 className="w-full py-4 px-5 rounded-2xl bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-500/30 hover:border-red-300 dark:hover:border-red-500/50 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
               >
@@ -463,7 +460,7 @@ const ShiftPage: React.FC = () => {
       {/* End Shift Confirmation Modal */}
       <EndShiftModal
         isOpen={isEndModalOpen}
-        onClose={() => setIsEndModalOpen(false)}
+        onClose={closeEndModal}
         onConfirm={handleConfirmEndShift}
         isEnding={isEndingShift}
         shift={activeShift}

@@ -19,9 +19,11 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
     hasActiveShift,
     endShift,
     isEndingShift,
+    isEndModalOpen,
+    openEndModal,
+    closeEndModal,
   } = useShift();
 
-  const [isEndModalOpen, setIsEndModalOpen] = useState(false);
   const [elapsedTime, setElapsedTime] = useState<string>('');
 
   // Live timer for active shift duration
@@ -50,16 +52,11 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
     return () => clearInterval(interval);
   }, [hasActiveShift, activeShift]);
 
-  const handleConfirmEndShift = async () => {
-    try {
-      await endShift(true);
-      setIsEndModalOpen(false);
-    } catch {
-      // Error handled in context
-    }
+  const handleConfirmEndShift = async (totalMony: number) => {
+    return await endShift(totalMony, false);
   };
 
-  if (hasActiveShift) {
+  if (hasActiveShift || isEndModalOpen) {
     const startTimeFormatted = activeShift?.start
       ? new Date(activeShift.start).toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', {
           hour: '2-digit',
@@ -122,7 +119,7 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
             {/* End Shift Button */}
             <button
               type="button"
-              onClick={() => setIsEndModalOpen(true)}
+              onClick={openEndModal}
               disabled={isEndingShift}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-all shadow-md shadow-red-600/20 disabled:opacity-50 cursor-pointer"
             >
@@ -134,7 +131,7 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
 
         <EndShiftModal
           isOpen={isEndModalOpen}
-          onClose={() => setIsEndModalOpen(false)}
+          onClose={closeEndModal}
           onConfirm={handleConfirmEndShift}
           isEnding={isEndingShift}
           shift={activeShift}

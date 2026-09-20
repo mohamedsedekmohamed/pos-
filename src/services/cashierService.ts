@@ -111,12 +111,12 @@ export const cashierApi = {
     return data.data;
   },
 
-  endShift: async (): Promise<Shift> => {
+  endShift: async (params: { total_mony: number }): Promise<Shift> => {
     const { data } = await api.post<{
       status: boolean;
       message: string;
       data: Shift;
-    }>('/api/cashier/end-shift');
+    }>('/api/cashier/end-shift', params);
     return data.data;
   },
 

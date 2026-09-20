@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cashierApi } from '../services/cashierService';
 import { useAuth } from './AuthContext';
@@ -25,12 +25,15 @@ interface ShiftContextType {
   hasActiveShift: boolean;
   canStartNewShift: boolean;
   startShift: (cashierId: number, device?: CashierDevice) => Promise<Shift>;
-  endShift: (shouldLogout?: boolean) => Promise<Shift>;
+  endShift: (totalMony?: number, shouldLogout?: boolean) => Promise<Shift>;
   refetchShift: () => Promise<any>;
   isStartingShift: boolean;
   isEndingShift: boolean;
   shiftError: string | null;
   clearShiftError: () => void;
+  isEndModalOpen: boolean;
+  openEndModal: () => void;
+  closeEndModal: () => void;
 }
 
 const ShiftContext = createContext<ShiftContextType | undefined>(undefined);
@@ -74,6 +77,10 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [shiftError, setShiftError] = useState<string | null>(null);
+  const [isEndModalOpen, setIsEndModalOpen] = useState(false);
+
+  const openEndModal = useCallback(() => setIsEndModalOpen(true), []);
+  const closeEndModal = useCallback(() => setIsEndModalOpen(false), []);
 
   // ── Query: Check Shift Status ──
   const {
@@ -143,7 +150,7 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // ── End Shift Mutation ──
   const endShiftMutation = useMutation({
-    mutationFn: cashierApi.endShift,
+    mutationFn: (params: { total_mony: number }) => cashierApi.endShift(params),
     onSuccess: (shift) => {
       setActiveShift(null);
       setActiveDevice(null);
@@ -163,16 +170,16 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return await startShiftMutation.mutateAsync({ cashierId, device });
   };
 
-  const endShift = async (shouldLogout: boolean = true): Promise<Shift> => {
+  const endShift = async (totalMony: number = 0, shouldLogout: boolean = false): Promise<Shift> => {
     setShiftError(null);
-    const result = await endShiftMutation.mutateAsync();
+    const result = await endShiftMutation.mutateAsync({ total_mony: totalMony });
     if (shouldLogout) {
       logout();
     }
     return result;
   };
 
-  const clearShiftError = () => setShiftError(null);
+  const clearShiftError = useCallback(() => setShiftError(null), []);
 
   // Keep localStorage updated if activeShift changes
   useEffect(() => {
@@ -201,6 +208,9 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         isEndingShift: endShiftMutation.isPending,
         shiftError,
         clearShiftError,
+        isEndModalOpen,
+        openEndModal,
+        closeEndModal,
       }}
     >
       {children}
