@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useShift } from '../context/ShiftContext';
 import { useOrderType } from '../context/OrderTypeContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useBusinessSetup } from '../hooks/useBusinessSetup';
 import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
@@ -13,16 +14,30 @@ const Header: React.FC = () => {
   const { hasActiveShift } = useShift();
   const { orderType, setOrderType } = useOrderType();
   const { language, toggleLanguage, t } = useLanguage();
+  const { business, logoUrl } = useBusinessSetup();
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 sm:px-6">
       {/* Left: Brand */}
       <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-lg shadow-primary/25">
-          <span className="text-white font-bold text-sm">P</span>
-        </div>
-        <h1 className="text-lg font-bold bg-gradient-to-l from-primary to-primary-dark bg-clip-text text-transparent hidden sm:block">
-          {t('pos_cashier')}
+        {logoUrl ? (
+          <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700/50 p-1 border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center overflow-hidden shrink-0">
+            <img
+              src={logoUrl}
+              alt={business?.name || 'Logo'}
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+        ) : (
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-lg shadow-primary/25 shrink-0">
+            <span className="text-white font-bold text-sm">P</span>
+          </div>
+        )}
+        <h1 className="text-lg font-bold bg-gradient-to-l from-primary to-primary-dark bg-clip-text text-transparent hidden sm:block truncate max-w-[200px]">
+          {business?.name || t('pos_cashier')}
         </h1>
       </div>
 

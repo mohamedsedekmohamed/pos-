@@ -15,9 +15,11 @@ export interface TableHall {
 
 export interface TableInfo {
   id: number;
+  table_code?: string;
+  code?: string;
   name: string;
   status: boolean;
-  qr: string;
+  qr?: string | null;
   branch: TableBranch;
   hall: TableHall;
 }
@@ -118,35 +120,37 @@ export interface TableCartAddonPayload {
 }
 
 export interface TableAddToCartPayload {
-  table_id: number;
-  hall_table_id: number;
+  table_code?: string | null;
+  table_id?: number | null;
+  hall_table_id?: number | null;
   product_id: number;
-  quantity: number;
-  notes?: string;
-  variations?: TableCartVariationPayload[];
-  addons?: TableCartAddonPayload[];
+  quantity?: number | null;
+  notes?: string | null;
+  variations?: TableCartVariationPayload[] | null;
+  addons?: TableCartAddonPayload[] | null;
   lat?: number | null;
   lng?: number | null;
   latitude?: number | null;
   longitude?: number | null;
   long?: number | null;
-  lang?: string;
+  lang?: string | null;
 }
 
 export interface TableUpdateCartPayload {
-  quantity: number;
-  notes?: string;
-  variations?: TableCartVariationPayload[];
-  addons?: TableCartAddonPayload[];
+  quantity?: number | null;
+  notes?: string | null;
+  variations?: TableCartVariationPayload[] | null;
+  addons?: TableCartAddonPayload[] | null;
   lat?: number | null;
   lng?: number | null;
   latitude?: number | null;
   longitude?: number | null;
   long?: number | null;
-  lang?: string;
+  lang?: string | null;
 }
 
 export interface TableCartQueryParams {
+  table_code?: string | null;
   hall_table_id?: number | null;
   table_id?: number | null;
   lang?: string | null;

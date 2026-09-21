@@ -25,7 +25,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
   const { language, dir, setLanguage, t } = useLanguage();
   const location = useLocation();
 
-  const resolvedBack = backTo || (location.pathname.startsWith('/table') ? '/table' : '/dashboard');
+  const savedTableCode = typeof window !== 'undefined' ? localStorage.getItem('table_selected_code') : null;
+  const resolvedBack =
+    backTo ||
+    (location.pathname.startsWith('/table')
+      ? (savedTableCode ? `/table/${savedTableCode}` : '/')
+      : '/dashboard');
 
   const fontSizes = [
     { id: 'small', label: language === 'ar' ? 'ص' : 'S', desc: t('font_small') },

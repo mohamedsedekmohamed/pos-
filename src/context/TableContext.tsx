@@ -9,6 +9,10 @@ interface GeoCoords {
 interface TableContextType {
   tableId: number | null;
   setTableId: (id: number | null) => void;
+  tableCode: string | null;
+  setTableCode: (code: string | null) => void;
+  isDirectTableCode: boolean;
+  setIsDirectTableCode: (isDirect: boolean) => void;
   tableInfo: TableInfo | null;
   setTableInfo: (info: TableInfo | null) => void;
   lang: 'ar' | 'en';
@@ -19,6 +23,7 @@ interface TableContextType {
 const TableContext = createContext<TableContextType | undefined>(undefined);
 
 const TABLE_STORAGE_KEY = 'table_selected_id';
+const TABLE_CODE_STORAGE_KEY = 'table_selected_code';
 const LANG_STORAGE_KEY = 'table_selected_lang';
 
 export const TableProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -27,6 +32,14 @@ export const TableProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const saved = localStorage.getItem(TABLE_STORAGE_KEY);
     return saved ? parseInt(saved, 10) : null;
   });
+
+  // Table Code (UUID / string)
+  const [tableCode, setTableCodeState] = useState<string | null>(() => {
+    return localStorage.getItem(TABLE_CODE_STORAGE_KEY) || null;
+  });
+
+  // Flag if user opened via route table_code directly
+  const [isDirectTableCode, setIsDirectTableCode] = useState<boolean>(false);
 
   const [tableInfo, setTableInfo] = useState<TableInfo | null>(null);
 
@@ -66,6 +79,15 @@ export const TableProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  const setTableCode = (code: string | null) => {
+    setTableCodeState(code);
+    if (code !== null) {
+      localStorage.setItem(TABLE_CODE_STORAGE_KEY, code);
+    } else {
+      localStorage.removeItem(TABLE_CODE_STORAGE_KEY);
+    }
+  };
+
   const setLang = (newLang: 'ar' | 'en') => {
     setLangState(newLang);
     localStorage.setItem(LANG_STORAGE_KEY, newLang);
@@ -76,6 +98,10 @@ export const TableProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       value={{
         tableId,
         setTableId,
+        tableCode,
+        setTableCode,
+        isDirectTableCode,
+        setIsDirectTableCode,
         tableInfo,
         setTableInfo,
         lang,

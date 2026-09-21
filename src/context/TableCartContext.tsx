@@ -34,7 +34,7 @@ const TableCartContext = createContext<TableCartContextType | undefined>(undefin
 const CART_STORAGE_KEY = 'table_cart_items';
 
 export const TableCartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { tableId, lang, coords } = useTableContext();
+  const { tableId, tableCode, lang, coords } = useTableContext();
 
   const [cart, setCart] = useState<TableCartItem[]>(() => {
     try {
@@ -56,18 +56,20 @@ export const TableCartProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   }, [cart]);
 
-  // Sync Cart from backend /api/table/cart if tableId exists
+  // Sync Cart from backend /api/table/cart if tableId or tableCode exists
   useEffect(() => {
-    if (tableId) {
+    if (tableId || tableCode) {
       tableApi
         .getCart({
           hall_table_id: tableId,
           table_id: tableId,
+          table_code: tableCode || undefined,
           lang,
           lat: coords?.lat,
           lng: coords?.lng,
           latitude: coords?.lat,
           longitude: coords?.lng,
+          long: coords?.lng,
         })
         .then((res) => {
           if (res && res.status && Array.isArray(res.data) && res.data.length > 0) {
@@ -103,7 +105,7 @@ export const TableCartProvider: React.FC<{ children: ReactNode }> = ({ children 
           console.warn('[TableCart] Fetch cart from /api/table/cart encountered an issue:', error?.message);
         });
     }
-  }, [tableId, lang, coords?.lat, coords?.lng]);
+  }, [tableId, tableCode, lang, coords?.lat, coords?.lng]);
 
   const calculateItemTotal = (
     unitPrice: number,
@@ -179,8 +181,9 @@ export const TableCartProvider: React.FC<{ children: ReactNode }> = ({ children 
     // Call /api/table/cart
     try {
       await tableApi.addToCart({
-        table_id: tableId || 0,
-        hall_table_id: tableId || 0,
+        table_code: tableCode || null,
+        table_id: tableId || null,
+        hall_table_id: tableId || null,
         product_id: item.productId,
         quantity: item.quantity,
         notes: item.notes || '',
@@ -268,6 +271,7 @@ export const TableCartProvider: React.FC<{ children: ReactNode }> = ({ children 
     setCart([]);
     try {
       await tableApi.clearCart({
+        table_code: tableCode || null,
         hall_table_id: tableId,
         table_id: tableId,
         lat: coords?.lat,

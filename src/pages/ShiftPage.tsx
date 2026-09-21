@@ -25,12 +25,14 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { cashierApi } from '../services/cashierService';
 import { EndShiftModal } from '../components/cashier/EndShiftModal';
+import { useBusinessSetup } from '../hooks/useBusinessSetup';
 
 const ShiftPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { language, dir, toggleLanguage, t } = useLanguage();
+  const { business, logoUrl } = useBusinessSetup();
   const {
     shiftStatus,
     isCheckingShift,
@@ -120,12 +122,25 @@ const ShiftPage: React.FC = () => {
       {/* Top Bar Header */}
       <header className="relative z-20 w-full flex items-center justify-between py-2">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center shadow-lg shadow-primary/25">
-            <FiShoppingBag className="w-5 h-5 text-white" />
-          </div>
+          {logoUrl ? (
+            <div className="w-11 h-11 rounded-2xl bg-white dark:bg-white/[0.05] p-1.5 border border-slate-200 dark:border-white/10 shadow-lg shadow-primary/20 flex items-center justify-center overflow-hidden shrink-0">
+              <img
+                src={logoUrl}
+                alt={business?.name || 'Logo'}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+          ) : (
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center shadow-lg shadow-primary/25 shrink-0">
+              <FiShoppingBag className="w-5 h-5 text-white" />
+            </div>
+          )}
           <div>
             <h1 className="text-lg font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-              {t('shift_portal')} <span className="text-primary font-normal">| Shift</span>
+              {business?.name || t('shift_portal')} <span className="text-primary font-normal">| Shift</span>
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400">{t('shift_management')}</p>
           </div>

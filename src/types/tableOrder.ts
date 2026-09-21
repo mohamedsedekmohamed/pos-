@@ -14,9 +14,11 @@ export interface TableOrderHall {
 
 export interface TableOrderInfo {
   id: number;
+  table_code?: string;
+  code?: string;
   name: string;
   status: boolean;
-  qr: string;
+  qr?: string | null;
   branch: TableOrderBranch;
   hall: TableOrderHall;
 }
@@ -104,45 +106,47 @@ export interface TableOrderAddon {
 
 // ── Table Order Cart Payloads & Responses ──
 export interface TableOrderAddToCartPayload {
-  table_id: number;
-  hall_table_id: number;
+  table_code?: string | null;
+  table_id?: number | null;
+  hall_table_id?: number | null;
   product_id: number;
-  quantity: number;
-  notes?: string;
+  quantity?: number | null;
+  notes?: string | null;
   variations?: Array<{
     variation_id: number;
     option_ids: number[];
-  }>;
+  }> | null;
   addons?: Array<{
     addon_id: number;
-  }>;
+  }> | null;
   lat?: number | null;
   lng?: number | null;
   latitude?: number | null;
   longitude?: number | null;
   long?: number | null;
-  lang?: string;
+  lang?: string | null;
 }
 
 export interface TableOrderUpdateCartPayload {
-  quantity: number;
-  notes?: string;
+  quantity?: number | null;
+  notes?: string | null;
   variations?: Array<{
     variation_id: number;
     option_ids: number[];
-  }>;
+  }> | null;
   addons?: Array<{
     addon_id: number;
-  }>;
+  }> | null;
   lat?: number | null;
   lng?: number | null;
   latitude?: number | null;
   longitude?: number | null;
   long?: number | null;
-  lang?: string;
+  lang?: string | null;
 }
 
 export interface TableOrderCartQueryParams {
+  table_code?: string | null;
   hall_table_id?: number | null;
   table_id?: number | null;
   lang?: string | null;

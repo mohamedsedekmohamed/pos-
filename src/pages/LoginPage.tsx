@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useBusinessSetup } from '../hooks/useBusinessSetup';
 import {
   FiUser,
   FiLock,
@@ -20,6 +21,7 @@ import {
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { business, logoUrl } = useBusinessSetup();
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -122,14 +124,31 @@ const LoginPage: React.FC = () => {
             {/* Animated Glow Halo */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-primary to-violet-600 blur-xl opacity-60 group-hover:opacity-100 transition-opacity animate-pulse-soft" />
 
-            {/* Icon Box */}
-            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#121216] to-[#1e1e24] border border-white/15 flex items-center justify-center shadow-2xl animate-float-gentle">
-              <FiShoppingBag className="w-8 h-8 text-primary drop-shadow-[0_0_12px_var(--color-primary)]" />
+            {/* Icon Box / Logo */}
+            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#121216] to-[#1e1e24] border border-white/15 flex items-center justify-center shadow-2xl animate-float-gentle overflow-hidden p-2">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={business?.name || 'Logo'}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <FiShoppingBag className="w-8 h-8 text-primary drop-shadow-[0_0_12px_var(--color-primary)]" />
+              )}
             </div>
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            نظام نقطة البيع <span className="text-primary">POS</span>
+            {business?.name ? (
+              <span>{business.name}</span>
+            ) : (
+              <>
+                نظام نقطة البيع <span className="text-primary">POS</span>
+              </>
+            )}
           </h1>
           <p className="text-sm text-neutral-400 mt-1">
             سجّل دخولك للوصول إلى لوحة المبيعات

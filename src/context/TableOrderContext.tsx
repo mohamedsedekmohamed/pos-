@@ -21,6 +21,8 @@ export interface TableOrderItem {
 interface TableOrderContextType {
   tableId: number | null;
   setTableId: (id: number | null) => void;
+  tableCode: string | null;
+  setTableCode: (code: string | null) => void;
   tableInfo: TableOrderInfo | null;
   setTableInfo: (info: TableOrderInfo | null) => void;
   lang: 'ar' | 'en';
@@ -36,6 +38,7 @@ interface TableOrderContextType {
 const TableOrderContext = createContext<TableOrderContextType | undefined>(undefined);
 
 const STORAGE_KEY_TABLE = 'table_order_sys_id';
+const STORAGE_KEY_CODE = 'table_order_sys_code';
 const STORAGE_KEY_LANG = 'table_order_sys_lang';
 const STORAGE_KEY_ITEMS = 'table_order_sys_items';
 
@@ -47,6 +50,10 @@ export const TableOrderProvider: React.FC<{ children: ReactNode }> = ({ children
   const [tableId, setTableIdState] = useState<number | null>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_TABLE);
     return saved ? parseInt(saved, 10) : null;
+  });
+
+  const [tableCode, setTableCodeState] = useState<string | null>(() => {
+    return localStorage.getItem(STORAGE_KEY_CODE) || null;
   });
 
   const [tableInfo, setTableInfo] = useState<TableOrderInfo | null>(null);
@@ -83,6 +90,15 @@ export const TableOrderProvider: React.FC<{ children: ReactNode }> = ({ children
     }
   };
 
+  const setTableCode = (code: string | null) => {
+    setTableCodeState(code);
+    if (code !== null) {
+      localStorage.setItem(STORAGE_KEY_CODE, code);
+    } else {
+      localStorage.removeItem(STORAGE_KEY_CODE);
+    }
+  };
+
   const setLang = (newLang: 'ar' | 'en') => {
     setLangState(newLang);
     localStorage.setItem(STORAGE_KEY_LANG, newLang);
@@ -90,11 +106,12 @@ export const TableOrderProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const addToOrder = async (item: TableOrderItem) => {
     setOrderItems((prev) => [...prev, item]);
-    if (tableId) {
+    if (tableId || tableCode) {
       try {
         await tableOrderApi.addToCart({
-          table_id: tableId,
-          hall_table_id: tableId,
+          table_code: tableCode || null,
+          table_id: tableId || null,
+          hall_table_id: tableId || null,
           product_id: item.productId,
           quantity: item.quantity,
           notes: item.notes,
@@ -144,11 +161,12 @@ export const TableOrderProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const clearOrder = async () => {
     setOrderItems([]);
-    if (tableId) {
+    if (tableId || tableCode) {
       try {
         await tableOrderApi.clearCart({
-          table_id: tableId,
-          hall_table_id: tableId,
+          table_code: tableCode || null,
+          table_id: tableId || null,
+          hall_table_id: tableId || null,
         });
       } catch (err: any) {
         console.warn('[TableOrder] Clear cart failed:', err?.message);
@@ -161,6 +179,8 @@ export const TableOrderProvider: React.FC<{ children: ReactNode }> = ({ children
       value={{
         tableId,
         setTableId,
+        tableCode,
+        setTableCode,
         tableInfo,
         setTableInfo,
         lang,

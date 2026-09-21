@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTableContext } from '../../context/TableContext';
+import { useBusinessSetup } from '../../hooks/useBusinessSetup';
 import {
   FiArrowRight,
   FiCoffee,
@@ -15,11 +16,20 @@ interface TableHeaderProps {
 }
 
 export const TableHeader: React.FC<TableHeaderProps> = ({ onOpenTableModal }) => {
-  const { tableInfo, lang, setLang } = useTableContext();
+  const { tableInfo, tableCode, isDirectTableCode, lang, setLang } = useTableContext();
+  const { business, logoUrl } = useBusinessSetup();
 
   const toggleLanguage = () => {
     setLang(lang === 'ar' ? 'en' : 'ar');
   };
+
+  const displayName = tableInfo?.name
+    ? tableInfo.name.startsWith('طاولة')
+      ? tableInfo.name
+      : `طاولة ${tableInfo.name}`
+    : tableCode
+    ? `طاولة (${tableCode.slice(0, 8)})`
+    : null;
 
   return (
     <header className="sticky top-0 z-30 w-full bg-[#070709]/85 backdrop-blur-xl border-b border-white/10 px-4 py-3 sm:px-6 transition-all">
@@ -34,25 +44,45 @@ export const TableHeader: React.FC<TableHeaderProps> = ({ onOpenTableModal }) =>
             <FiArrowRight className="w-4 h-4" />
           </Link>
 
+          {logoUrl && (
+            <div className="w-8 h-8 rounded-xl bg-white/[0.04] p-1 border border-white/10 items-center justify-center overflow-hidden shrink-0 hidden sm:flex">
+              <img
+                src={logoUrl}
+                alt={business?.name || 'Logo'}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+
           <div className="flex items-center gap-2.5 min-w-0">
             {/* Table Indicator Badge */}
-            {tableInfo ? (
+            {displayName ? (
               <button
                 type="button"
-                onClick={onOpenTableModal}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/15 to-teal-500/15 border border-emerald-500/30 text-emerald-400 hover:border-emerald-500/50 transition-all text-right group cursor-pointer"
-                title="تغيير الطاولة"
+                onClick={isDirectTableCode ? undefined : onOpenTableModal}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/15 to-teal-500/15 border border-emerald-500/30 text-emerald-400 text-right group transition-all ${
+                  isDirectTableCode
+                    ? 'cursor-default'
+                    : 'hover:border-emerald-500/50 cursor-pointer'
+                }`}
+                title={isDirectTableCode ? 'تم تحديد الطاولة تلقائياً' : 'تغيير الطاولة'}
               >
                 <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
                   <FiCoffee className="w-3.5 h-3.5 text-emerald-400" />
                 </div>
                 <div className="min-w-0">
                   <div className="text-xs font-bold text-white flex items-center gap-1.5 leading-tight">
-                    <span>طاولة {tableInfo.name}</span>
-                    <FiEdit2 className="w-2.5 h-2.5 text-emerald-400 opacity-60 group-hover:opacity-100" />
+                    <span>{displayName}</span>
+                    {!isDirectTableCode && (
+                      <FiEdit2 className="w-2.5 h-2.5 text-emerald-400 opacity-60 group-hover:opacity-100" />
+                    )}
                   </div>
                   <p className="text-[10px] text-emerald-400/80 truncate">
-                    {tableInfo.hall?.name || 'الصالة'} {tableInfo.branch?.name ? `· ${tableInfo.branch.name}` : ''}
+                    {tableInfo?.hall?.name || 'الصالة'}{' '}
+                    {tableInfo?.branch?.name ? `· ${tableInfo.branch.name}` : ''}
                   </p>
                 </div>
               </button>

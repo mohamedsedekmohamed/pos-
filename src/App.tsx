@@ -28,7 +28,11 @@ function App() {
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/table" element={<TablePage />} />
+                <Route path="/table/:table_code" element={<TablePage />} />
+                <Route path="/table_code" element={<TablePage />} />
+                <Route path="/table_code/:table_code" element={<TablePage />} />
                 <Route path="/table/profile" element={<UserProfilePage backTo="/table" />} />
+                <Route path="/table/:table_code/profile" element={<UserProfilePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 
                 {/* Protected Routes (Cashier Track) */}
