@@ -12,6 +12,8 @@ import ProductModal from '../components/cashier/ProductModal';
 import CheckoutModal, { type CheckoutMeta } from '../components/cashier/CheckoutModal';
 import ReceiptModal, { type ReceiptOrderData } from '../components/cashier/ReceiptModal';
 import ShiftBar from '../components/cashier/ShiftBar';
+import StockRecipeConfirmModal from '../components/cashier/StockRecipeConfirmModal';
+import { useLanguage } from '../context/LanguageContext';
 import type { Product, AddToCartPayload, UpdateCartPayload, CheckoutPayload } from '../types/cashier';
 
 const DashboardHome: React.FC = () => {
@@ -19,6 +21,7 @@ const DashboardHome: React.FC = () => {
   const { user } = useAuth();
   const { hasActiveShift, isCheckingShift, isEndModalOpen, activeShift, activeDevice } = useShift();
   const { orderType, orderTypeLabel } = useOrderType();
+  const { t, renderLocalized } = useLanguage();
 
   // Redirect to shift page if no active shift is found (and modal is not open)
   useEffect(() => {
@@ -33,6 +36,12 @@ const DashboardHome: React.FC = () => {
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [receiptOrderData, setReceiptOrderData] = useState<ReceiptOrderData | null>(null);
+  const [stockConfirm, setStockConfirm] = useState<{
+    isOpen: boolean;
+    payload: AddToCartPayload;
+    serverMessage?: string;
+    productName?: string;
+  } | null>(null);
   const pendingOrderRef = useRef<{
     payload: CheckoutPayload;
     meta?: CheckoutMeta;
@@ -74,7 +83,41 @@ const DashboardHome: React.FC = () => {
 
   const addMutation = useMutation({
     mutationFn: cashierApi.addToCart,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      setStockConfirm(null);
+    },
+    onError: (error: any, variables: AddToCartPayload) => {
+      // If without_recipe wasn't already true, this failure could be stock/recipe exhaustion
+      if (!variables.without_recipe) {
+        const isAuthError = error?.response?.status === 401;
+        if (!isAuthError) {
+          const serverMessage =
+            error?.response?.data?.message ||
+            error?.response?.data?.error ||
+            error?.message;
+          const matchedProd = products.find((p) => p.id === variables.product_id);
+          const pName = matchedProd
+            ? renderLocalized(matchedProd.name) || (typeof matchedProd.name === 'string' ? matchedProd.name : '')
+            : undefined;
+
+          setStockConfirm({
+            isOpen: true,
+            payload: variables,
+            serverMessage: typeof serverMessage === 'string' ? serverMessage : undefined,
+            productName: pName,
+          });
+          return;
+        }
+      }
+
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        t('error_occurred');
+      alert(msg);
+    },
   });
 
   const updateMutation = useMutation({
@@ -134,10 +177,26 @@ const DashboardHome: React.FC = () => {
   // ── Cart Actions ──
   const handleAddToCart = useCallback(
     (payload: AddToCartPayload) => {
-      addMutation.mutate(payload);
+      addMutation.mutate({
+        ...payload,
+        without_recipe: payload.without_recipe ?? false,
+      });
     },
     [addMutation]
   );
+
+  const handleConfirmWithoutRecipe = useCallback(() => {
+    if (!stockConfirm?.payload) return;
+    const retryPayload: AddToCartPayload = {
+      ...stockConfirm.payload,
+      without_recipe: true,
+    };
+    addMutation.mutate(retryPayload);
+  }, [stockConfirm, addMutation]);
+
+  const handleCancelWithoutRecipe = useCallback(() => {
+    setStockConfirm(null);
+  }, []);
 
   const handleUpdateQuantity = useCallback(
     (id: number, delta: number) => {
@@ -167,7 +226,7 @@ const DashboardHome: React.FC = () => {
 
       updateMutation.mutate({ id, payload: updatePayload });
     },
-    [cartItems, updateMutation, removeMutation]
+    [cartItems, orderType, updateMutation, removeMutation]
   );
 
   const handleRemoveItem = useCallback(
@@ -259,6 +318,16 @@ const DashboardHome: React.FC = () => {
         isOpen={isReceiptModalOpen}
         onClose={() => setIsReceiptModalOpen(false)}
         orderData={receiptOrderData}
+      />
+
+      {/* Stock / Recipe Confirmation Modal */}
+      <StockRecipeConfirmModal
+        isOpen={Boolean(stockConfirm?.isOpen)}
+        onClose={handleCancelWithoutRecipe}
+        onConfirm={handleConfirmWithoutRecipe}
+        isSubmitting={addMutation.isPending}
+        serverMessage={stockConfirm?.serverMessage}
+        productName={stockConfirm?.productName}
       />
     </div>
   );

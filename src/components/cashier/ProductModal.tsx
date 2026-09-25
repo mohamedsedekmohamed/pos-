@@ -113,6 +113,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
       module: orderType,
       product_id: product.id,
       quantity,
+      without_recipe: false,
       notes: notes || null,
       variations: variationsPayload.length > 0 ? variationsPayload : null,
       addons: addonsPayload.length > 0 ? addonsPayload : null,

@@ -117,6 +117,13 @@ export const translations = {
     total: 'الإجمالي',
     checkout: 'إتمام الطلب',
 
+    // ── Stock / Recipe Confirmation ──
+    recipe_stock_alert_title: 'نفاد المخزون / مكونات الوصفة',
+    recipe_stock_alert_desc: 'كمية الصنف أو بعض مكونات الوصفة (Recipe) غير متوفرة في المخزون.',
+    recipe_stock_alert_prompt: 'هل ترغب في المتابعة وإضافة المنتج للسلة بدون خصم من الوصفة (Without Recipe)؟',
+    add_without_recipe: 'نعم، إضافة بدون خصم',
+    cancel_action: 'لا، إلغاء',
+
     // ── Checkout Modal ──
     confirm_order: 'تأكيد الطلب',
     order_type_confirmed: 'نوع الطلب المعتمد',
@@ -291,6 +298,13 @@ export const translations = {
     tax_15: 'VAT (15%)',
     total: 'Total',
     checkout: 'Checkout',
+
+    // ── Stock / Recipe Confirmation ──
+    recipe_stock_alert_title: 'Out of Stock / Recipe Depleted',
+    recipe_stock_alert_desc: 'The item quantity or some recipe ingredients are currently unavailable in stock.',
+    recipe_stock_alert_prompt: 'Do you want to proceed and add the item to the cart without deducting from recipe?',
+    add_without_recipe: 'Yes, Add Without Recipe',
+    cancel_action: 'No, Cancel',
 
     // ── Checkout Modal ──
     confirm_order: 'Confirm Order',

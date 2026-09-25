@@ -218,6 +218,7 @@ export interface AddToCartPayload {
   module: 'takeaway' | 'dinein' | 'delivery';
   product_id: number;
   quantity: number;
+  without_recipe?: boolean;
   notes?: string | null;
   variations?: AddToCartVariationPayload[] | null;
   addons?: AddToCartAddonPayload[] | null;
@@ -226,6 +227,7 @@ export interface AddToCartPayload {
 export interface UpdateCartPayload {
   module: 'takeaway' | 'dinein' | 'delivery';
   quantity: number;
+  without_recipe?: boolean;
   notes?: string | null;
   variations?: AddToCartVariationPayload[] | null;
   addons?: AddToCartAddonPayload[] | null;

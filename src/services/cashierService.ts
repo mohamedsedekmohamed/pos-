@@ -129,7 +129,19 @@ export const cashierApi = {
   },
 
   addToCart: async (payload: AddToCartPayload): Promise<ApiCartItem> => {
-    const { data } = await api.post<{ status: boolean; data: ApiCartItem }>('/api/cashier/cart', payload);
+    const body: AddToCartPayload = {
+      without_recipe: false,
+      ...payload,
+    };
+    const { data } = await api.post<{ status: boolean; message?: string; data: ApiCartItem }>(
+      '/api/cashier/cart',
+      body
+    );
+    if (data && data.status === false) {
+      const err: any = new Error(data.message || 'Failed to add to cart');
+      err.response = { data };
+      throw err;
+    }
     return data.data;
   },
 
