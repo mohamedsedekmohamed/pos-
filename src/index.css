@@ -55,6 +55,36 @@ html {
   50% { opacity: 0.65; transform: scale(1.08); }
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cartBump {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.15) rotate(-4deg); }
+  50% { transform: scale(0.95) rotate(4deg); }
+  75% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shimmerEffect {
+  0% { transform: translateX(-150%); }
+  100% { transform: translateX(150%); }
+}
+
+@keyframes floatOrb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.1); }
+  66% { transform: translate(-25px, 20px) scale(0.95); }
+}
+
 .animate-float-gentle {
   animation: float-gentle 5s ease-in-out infinite;
 }
@@ -65,6 +95,18 @@ html {
 
 .animate-pulse-soft {
   animation: pulse-soft 6s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-cart-bump {
+  animation: cartBump 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.animate-float-orb {
+  animation: floatOrb 12s ease-in-out infinite;
 }
 
 /* ══════════ POS THERMAL RECEIPT PRINT STYLES ══════════ */

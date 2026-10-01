@@ -15,6 +15,8 @@ import LoginPage from './pages/LoginPage';
 import DashboardHome from './pages/DashboardHome';
 import ShiftPage from './pages/ShiftPage';
 import UserProfilePage from './pages/profile/ProfilePage';
+import UserMenuPage from './pages/user/UserMenuPage';
+import OrderSuccessPage from './pages/user/OrderSuccessPage';
 import './App.css';
 
 function App() {
@@ -27,6 +29,10 @@ function App() {
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
+                <Route path="/order" element={<UserMenuPage />} />
+                <Route path="/order/profile" element={<UserProfilePage backTo="/order" />} />
+                <Route path="/order/success/:orderId" element={<OrderSuccessPage />} />
+                <Route path="/order/:orderId" element={<OrderSuccessPage />} />
                 <Route path="/table" element={<TablePage />} />
                 <Route path="/table/:table_code" element={<TablePage />} />
                 <Route path="/table_code" element={<TablePage />} />

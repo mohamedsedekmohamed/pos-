@@ -10,6 +10,7 @@ import {
   FiShoppingBag,
   FiZap,
   FiX,
+  FiTruck,
 } from 'react-icons/fi';
 import { FaWhatsapp, FaFacebookF, FaInstagram, FaPhone } from 'react-icons/fa6';
 import { useBusinessSetup } from '../hooks/useBusinessSetup';
@@ -118,7 +119,7 @@ const HomePage: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 max-w-5xl mx-auto px-4 py-12 sm:py-16 flex flex-col items-center justify-center w-full">
+      <main className="relative z-10 flex-1 max-w-7xl mx-auto px-4 py-12 sm:py-16 flex flex-col items-center justify-center w-full">
         {/* Business Showcase Card (Only shown if data exists, otherwise kept blank) */}
         {hasBusinessData && (
           <div className="w-full max-w-2xl mb-10 p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl relative overflow-hidden text-center animate-in fade-in duration-500">
@@ -214,7 +215,7 @@ const HomePage: React.FC = () => {
         <div className="text-center max-w-2xl mb-12 animate-in fade-in zoom-in-95 duration-500">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-bold text-neutral-300 mb-4 shadow-sm">
             <FiZap className="w-3.5 h-3.5 text-amber-400" />
-            <span>منظومة متكاملة لنقاط البيع وخدمة الطاولات</span>
+            <span>منظومة متكاملة لنقاط البيع، خدمة الطاولات، والطلب أونلاين</span>
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
@@ -225,12 +226,68 @@ const HomePage: React.FC = () => {
           </p>
         </div>
 
-        {/* The Two Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 w-full">
-          {/* Card 1: Cashier Route (Protected) */}
+        {/* The Action Cards (3 Columns) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 w-full">
+          {/* Card 1: Online Ordering & Delivery (Public User API) */}
+          <div
+            onClick={() => navigate('/order')}
+            className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-blue-500/50 p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-500/10 cursor-pointer overflow-hidden backdrop-blur-xl"
+          >
+            {/* Top Glowing Ambient in Card */}
+            <div className="absolute top-0 right-0 w-44 h-44 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-colors pointer-events-none" />
+
+            <div>
+              {/* Header inside Card */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-500/20 to-indigo-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/10">
+                  <FiTruck className="w-7 h-7" />
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
+                  <FiGlobe className="w-3.5 h-3.5" />
+                  <span>عام (بدون تسجيل)</span>
+                </div>
+              </div>
+
+              {/* Title & Description */}
+              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
+                الطلب والتوصيل أونلاين
+              </h2>
+              <p className="text-sm text-neutral-400 leading-relaxed mb-6">
+                تصفح قائمة الطعام بالكامل، أضف لسلتك، واطلب التوصيل لموقعك مباشرة مع تحديد الموقع بالـ GPS.
+              </p>
+
+              {/* Feature Highlights */}
+              <div className="space-y-2.5 mb-8 text-xs font-medium text-neutral-300">
+                <div className="flex items-center gap-2.5">
+                  <FiCheckCircle className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span>تصفح المنيو، الأسعار والخصومات</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <FiCheckCircle className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span>سلة مشتريات وإضافات مخصصة</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <FiCheckCircle className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span>تحديد موقع التوصيل وحساب التغطية</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+              <span className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">
+                تصفح المنيو واطلب الآن
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-neutral-300 group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500 transition-all">
+                <FiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Cashier Route (Protected) */}
           <div
             onClick={() => navigate('/dashboard')}
-            className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-primary/50 p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer overflow-hidden backdrop-blur-xl"
+            className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-primary/50 p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer overflow-hidden backdrop-blur-xl"
           >
             {/* Top Glowing Ambient in Card */}
             <div className="absolute top-0 right-0 w-44 h-44 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors pointer-events-none" />

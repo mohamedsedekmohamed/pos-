@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { FiUser, FiMail, FiLogOut, FiSun, FiMoon, FiCheck, FiArrowRight, FiArrowLeft, FiType, FiDroplet, FiGlobe } from 'react-icons/fi';
+import { FiUser, FiMail, FiLogOut, FiSun, FiMoon, FiCheck, FiArrowRight, FiArrowLeft, FiType, FiDroplet, FiGlobe, FiShoppingBag } from 'react-icons/fi';
 import { renderName } from '../../utils/helpers';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -25,11 +25,16 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
   const { language, dir, setLanguage, t } = useLanguage();
   const location = useLocation();
 
+  const isCustomerOrder = location.pathname.startsWith('/order') || backTo === '/order';
+  const isTableCustomer = location.pathname.startsWith('/table') || backTo?.startsWith('/table');
+
   const savedTableCode = typeof window !== 'undefined' ? localStorage.getItem('table_selected_code') : null;
   const resolvedBack =
     backTo ||
     (location.pathname.startsWith('/table')
       ? (savedTableCode ? `/table/${savedTableCode}` : '/')
+      : location.pathname.startsWith('/order')
+      ? '/order'
       : '/dashboard');
 
   const fontSizes = [
@@ -67,18 +72,24 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
               <div className="px-6 pb-6 flex flex-col items-center text-center relative -mt-16">
                 <div className="w-32 h-32 rounded-full bg-white dark:bg-[#111111] p-2 shadow-2xl mb-5 relative z-10">
                   <div className="w-full h-full rounded-full bg-primary/10 dark:bg-white/[0.05] flex items-center justify-center text-primary dark:text-primary text-5xl font-bold">
-                    {user?.name?.charAt(0)?.toUpperCase() || <FiUser />}
+                    {isCustomerOrder ? <FiShoppingBag /> : user?.name?.charAt(0)?.toUpperCase() || <FiUser />}
                   </div>
                 </div>
                 
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                  {user ? renderName(user.name) : t('cashier')}
+                  {isCustomerOrder
+                    ? 'عميل المتجر'
+                    : user
+                    ? renderName(user.name)
+                    : isTableCustomer
+                    ? 'زبون الطاولة'
+                    : t('cashier')}
                 </h2>
                 <span className="px-5 py-2 bg-primary/10 text-primary rounded-2xl text-sm font-bold mb-8 shadow-inner">
-                  {user?.role || t('role_cashier')}
+                  {isCustomerOrder ? 'طلب أونلاين وتوصيل' : user?.role || (isTableCustomer ? 'خدمة ذاتية' : t('role_cashier'))}
                 </span>
                 
-                {user?.email ? (
+                {!isCustomerOrder && user?.email ? (
                   <div className="w-full bg-slate-50 dark:bg-white/[0.03] rounded-2xl p-4 mb-6 flex items-center gap-4 text-start border border-slate-100 dark:border-white/5">
                     <div className="w-12 h-12 rounded-xl bg-white dark:bg-white/[0.06] flex items-center justify-center text-slate-400 shadow-sm shrink-0">
                       <FiMail className="w-6 h-6" />
@@ -91,12 +102,23 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                 ) : (
                   <div className="w-full bg-slate-50 dark:bg-white/[0.03] rounded-2xl p-4 mb-6 text-center border border-slate-100 dark:border-white/5">
                     <p className="text-xs text-slate-400">
-                      {t('choose_language_desc')}
+                      {isCustomerOrder
+                        ? 'تخصيص ألوان وتفضيلات التصفح والخطوط'
+                        : t('choose_language_desc')}
                     </p>
                   </div>
                 )}
 
-                {user ? (
+                {/* Actions: In order customer mode, never show logout button */}
+                {isCustomerOrder ? (
+                  <Link
+                    to="/order"
+                    className="w-full py-4 rounded-2xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all font-bold text-base flex items-center justify-center gap-2 group cursor-pointer shadow-sm"
+                  >
+                    <FiShoppingBag className="w-5 h-5" />
+                    <span>العودة لقائمة الطعام</span>
+                  </Link>
+                ) : user ? (
                   <button
                     onClick={logout}
                     className="w-full py-4 rounded-2xl bg-red-50 dark:bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-all font-bold text-base flex items-center justify-center gap-2 group cursor-pointer"
@@ -110,7 +132,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ backTo }) => {
                     className="w-full py-4 rounded-2xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all font-bold text-base flex items-center justify-center gap-2 group cursor-pointer"
                   >
                     <FiUser className="w-5 h-5" />
-                    {t('logout')}
+                    <span>تسجيل الدخول</span>
                   </Link>
                 )}
               </div>

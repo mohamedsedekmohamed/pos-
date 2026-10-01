@@ -8,6 +8,7 @@ export interface BusinessSetup {
   logo?: string | null;
   raw_logo?: string | null;
   description?: string | null;
+  branch_cover?: number | null;
   created_at?: string | null;
   updated_at?: string | null;
 }
