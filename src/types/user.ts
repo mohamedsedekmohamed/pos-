@@ -16,9 +16,23 @@ export interface UserBusinessSetup {
   raw_logo?: string | null;
   description?: string | null;
   branch_cover?: number | null;
+  is_open?: boolean;
+  start_day?: string;
+  end_day?: string;
+  working_hours_text?: string;
   created_at?: string;
   updated_at?: string;
 }
+
+// ── Order Tracking Status ──
+export type UserOrderStatus =
+  | 'preparing'
+  | 'done'
+  | 'out_of_delivery'
+  | 'delivered'
+  | 'failed_to_delivered'
+  | 'pickup'
+  | 'return';
 
 // ── Categories ──
 export interface UserCategory {
@@ -159,20 +173,37 @@ export interface UserCartItemAddon {
   final_price: number;
 }
 
-export interface UserCartItem {
+export interface UserCartProduct {
   id: number;
-  product_id: number;
   name: string;
+  description?: string;
   image?: string;
-  quantity: number;
   price: number;
   discount_val: number;
   tax_val: number;
   final_price: number;
-  item_total_price: number;
-  item_total_discount: number;
-  item_total_tax: number;
-  item_final_price: number;
+}
+
+export interface UserCartItem {
+  id: number;
+  module?: string;
+  product_id?: number;
+  product?: UserCartProduct;
+  name?: string;
+  image?: string;
+  quantity: number;
+  price?: number;
+  discount_val?: number;
+  tax_val?: number;
+  final_price?: number;
+  total_price?: number;
+  total_discount?: number;
+  total_tax?: number;
+  total_final_price?: number;
+  item_total_price?: number;
+  item_total_discount?: number;
+  item_total_tax?: number;
+  item_final_price?: number;
   notes?: string | null;
   variations: UserCartItemVariation[];
   addons: UserCartItemAddon[];
@@ -239,6 +270,7 @@ export interface UserOrderData {
   final_price: number;
   branch: UserOrderBranch;
   products: UserOrderProduct[];
+  status?: UserOrderStatus;
   created_at: string;
   updated_at: string;
 }

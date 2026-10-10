@@ -9,15 +9,17 @@ import {
   FiLoader,
   FiTruck,
   FiPackage,
+  FiClock,
 } from 'react-icons/fi';
 import { useUserCart } from '../../context/UserCartContext';
-import { formatImageUrl } from '../../hooks/useBusinessSetup';
+import { useBusinessSetup, formatImageUrl } from '../../hooks/useBusinessSetup';
 
 interface UserCartDrawerProps {
   onProceedToCheckout: () => void;
 }
 
 export const UserCartDrawer: React.FC<UserCartDrawerProps> = ({ onProceedToCheckout }) => {
+  const { isClosed } = useBusinessSetup();
   const {
     isCartOpen,
     closeCart,
@@ -40,7 +42,7 @@ export const UserCartDrawer: React.FC<UserCartDrawerProps> = ({ onProceedToCheck
   const isBusy = isUpdating || isRemoving || isClearing;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden" dir="rtl">
+    <div className="xl:hidden fixed inset-0 z-50 overflow-hidden" dir="rtl">
       {/* Backdrop */}
       <div
         onClick={closeCart}
@@ -154,7 +156,13 @@ export const UserCartDrawer: React.FC<UserCartDrawerProps> = ({ onProceedToCheck
               </div>
             ) : (
               cartItems.map((item) => {
-                const imageUrl = formatImageUrl(item.image);
+                const itemName = item.product?.name || item.name || 'وجبة';
+                const imageUrl = formatImageUrl(item.product?.image || item.image);
+                const itemPrice = Number(
+                  item.total_final_price ??
+                  item.item_final_price ??
+                  ((item.product?.final_price || item.product?.price || item.final_price || item.price || 0) * (item.quantity || 1))
+                );
 
                 return (
                   <div
@@ -167,7 +175,7 @@ export const UserCartDrawer: React.FC<UserCartDrawerProps> = ({ onProceedToCheck
                         {imageUrl ? (
                           <img
                             src={imageUrl}
-                            alt={item.name}
+                            alt={itemName}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -181,7 +189,7 @@ export const UserCartDrawer: React.FC<UserCartDrawerProps> = ({ onProceedToCheck
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <h4 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">
-                            {item.name}
+                            {itemName}
                           </h4>
                           <button
                             type="button"
@@ -261,7 +269,7 @@ export const UserCartDrawer: React.FC<UserCartDrawerProps> = ({ onProceedToCheck
                       {/* Total Item Price */}
                       <div className="text-left">
                         <span className="text-sm font-black text-slate-900 dark:text-white">
-                          {Number(item.item_final_price || item.final_price * item.quantity).toFixed(2)}
+                          {itemPrice.toFixed(2)}
                         </span>
                         <span className="text-[10px] text-slate-500 dark:text-neutral-400 mr-1 font-semibold">ج.م</span>
                       </div>
@@ -317,14 +325,28 @@ export const UserCartDrawer: React.FC<UserCartDrawerProps> = ({ onProceedToCheck
               <button
                 type="button"
                 onClick={() => {
+                  if (isClosed) return;
                   closeCart();
                   onProceedToCheckout();
                 }}
-                disabled={isBusy}
-                className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-primary/25 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                disabled={isBusy || isClosed}
+                className={`w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl font-bold text-sm shadow-xl transition-all ${
+                  isClosed
+                    ? 'bg-slate-300 dark:bg-white/10 text-slate-500 dark:text-neutral-400 cursor-not-allowed opacity-80'
+                    : 'bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 text-white shadow-primary/25 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 cursor-pointer'
+                }`}
               >
-                <span>متابعة إتمام الطلب</span>
-                <FiArrowLeft className="w-4 h-4" />
+                {isClosed ? (
+                  <>
+                    <FiClock className="w-4 h-4 text-amber-500" />
+                    <span>المطعم مغلق حالياً - لا يمكن إتمام الطلب</span>
+                  </>
+                ) : (
+                  <>
+                    <span>متابعة إتمام الطلب</span>
+                    <FiArrowLeft className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
           )}

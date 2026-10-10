@@ -15,6 +15,7 @@ import {
 import { FaWhatsapp } from 'react-icons/fa6';
 import { userApi } from '../../services/userService';
 import { useBusinessSetup } from '../../hooks/useBusinessSetup';
+import { OrderTrackingTimeline } from '../../components/user/OrderTrackingTimeline';
 import type { UserOrderData } from '../../types/user';
 
 export const OrderSuccessPage: React.FC = () => {
@@ -27,7 +28,7 @@ export const OrderSuccessPage: React.FC = () => {
   const stateOrder = location.state?.order as UserOrderData | undefined;
   const distanceKm = location.state?.distance_km as number | undefined;
 
-  // Query order if not available in state or for refresh
+  // Live Query: Fetch order and poll every 8 seconds until delivered / closed
   const {
     data: fetchedOrder,
     isLoading,
@@ -35,11 +36,24 @@ export const OrderSuccessPage: React.FC = () => {
   } = useQuery({
     queryKey: ['user-order-detail', orderId],
     queryFn: () => userApi.getOrder(orderId!),
-    enabled: Boolean(orderId) && !stateOrder,
-    staleTime: 1000 * 60 * 10,
+    enabled: Boolean(orderId),
+    initialData: stateOrder,
+    refetchInterval: (query) => {
+      const currentStatus = query.state.data?.status;
+      // Stop polling once order is finalized
+      if (
+        currentStatus === 'delivered' ||
+        currentStatus === 'failed_to_delivered' ||
+        currentStatus === 'return'
+      ) {
+        return false;
+      }
+      return 8000; // Poll every 8s while preparing or in-transit
+    },
+    staleTime: 1000 * 5,
   });
 
-  const order = stateOrder || fetchedOrder;
+  const order = fetchedOrder || stateOrder;
 
   // WhatsApp Helper
   const getWhatsAppLink = (orderNum?: number | string) => {
@@ -125,6 +139,17 @@ export const OrderSuccessPage: React.FC = () => {
               </span>
             </p>
           </div>
+
+          {/* ── Realtime Order Tracking Timeline ── */}
+          {order && (
+            <div className="w-full text-right">
+              <OrderTrackingTimeline
+                status={order.status}
+                module={order.module}
+                orderId={order.id}
+              />
+            </div>
+          )}
 
           {/* Quick Info Grid */}
           <div className="grid grid-cols-2 gap-3 text-right bg-slate-50 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-200/60 dark:border-white/5 text-xs">

@@ -1,6 +1,7 @@
 import React from 'react';
-import { FiPlus, FiTag } from 'react-icons/fi';
-import { formatImageUrl } from '../../hooks/useBusinessSetup';
+import { FiPlus, FiTag, FiClock } from 'react-icons/fi';
+import { useBusinessSetup, formatImageUrl } from '../../hooks/useBusinessSetup';
+import { useToast } from '../../context/ToastContext';
 import type { UserProduct } from '../../types/user';
 
 interface UserProductCardProps {
@@ -14,12 +15,27 @@ export const UserProductCard: React.FC<UserProductCardProps> = ({
   onSelect,
   index = 0,
 }) => {
+  const { isClosed } = useBusinessSetup();
+  const { showWarning } = useToast();
   const imageUrl = formatImageUrl(product.image);
   const hasDiscount = product.discount_val > 0;
 
+  const handleCardClick = () => {
+    onSelect(product);
+  };
+
+  const handleAddButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isClosed) {
+      showWarning('المطعم مغلق حالياً، لا يمكن إضافة منتجات إلى السلة في الوقت الحالي.');
+      return;
+    }
+    onSelect(product);
+  };
+
   return (
     <div
-      onClick={() => onSelect(product)}
+      onClick={handleCardClick}
       style={{
         animationDelay: `${Math.min(index * 45, 600)}ms`,
       }}
@@ -86,15 +102,26 @@ export const UserProductCard: React.FC<UserProductCardProps> = ({
 
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelect(product);
-          }}
-          className="flex items-center gap-1 p-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl bg-slate-100 dark:bg-white/[0.06] group-hover:bg-primary text-slate-700 dark:text-neutral-200 group-hover:text-white border border-slate-200 dark:border-white/10 group-hover:border-primary text-xs font-bold transition-all duration-300 shadow-sm shrink-0 active:scale-90"
-          title="إضافة للسلة"
+          onClick={handleAddButtonClick}
+          disabled={isClosed}
+          className={`flex items-center gap-1 p-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl text-xs font-bold transition-all duration-300 shadow-sm shrink-0 ${
+            isClosed
+              ? 'bg-slate-200/70 dark:bg-white/[0.04] text-slate-400 dark:text-neutral-500 border border-slate-200 dark:border-white/5 cursor-not-allowed opacity-80'
+              : 'bg-slate-100 dark:bg-white/[0.06] group-hover:bg-primary text-slate-700 dark:text-neutral-200 group-hover:text-white border border-slate-200 dark:border-white/10 group-hover:border-primary active:scale-90'
+          }`}
+          title={isClosed ? 'المطعم مغلق حالياً' : 'إضافة للسلة'}
         >
-          <FiPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:rotate-90 duration-300" />
-          <span className="hidden xs:inline">إضافة</span>
+          {isClosed ? (
+            <>
+              <FiClock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
+              <span className="hidden xs:inline">مغلق</span>
+            </>
+          ) : (
+            <>
+              <FiPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:rotate-90 duration-300" />
+              <span className="hidden xs:inline">إضافة</span>
+            </>
+          )}
         </button>
       </div>
     </div>

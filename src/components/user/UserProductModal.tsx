@@ -8,11 +8,13 @@ import {
   FiShoppingBag,
   FiAlertCircle,
   FiLoader,
+  FiClock,
 } from 'react-icons/fi';
 import { userApi } from '../../services/userService';
-import { formatImageUrl } from '../../hooks/useBusinessSetup';
+import { useBusinessSetup, formatImageUrl } from '../../hooks/useBusinessSetup';
 import { useLanguage } from '../../context/LanguageContext';
 import { useUserCart } from '../../context/UserCartContext';
+import { useToast } from '../../context/ToastContext';
 import type {
   UserProduct,
   UserProductDetail,
@@ -33,7 +35,9 @@ export const UserProductModal: React.FC<UserProductModalProps> = ({
   onSuccess,
 }) => {
   const { language } = useLanguage();
-  const { addToCart, isAdding, openCart } = useUserCart();
+  const { isClosed } = useBusinessSetup();
+  const { addToCart, isAdding } = useUserCart();
+  const { showSuccess } = useToast();
 
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
@@ -136,6 +140,11 @@ export const UserProductModal: React.FC<UserProductModalProps> = ({
   const handleAddToCart = async () => {
     if (!product) return;
 
+    if (isClosed) {
+      setValidationError('المطعم مغلق حالياً، لا يمكن إضافة طلبات إلى السلة في الوقت الحالي.');
+      return;
+    }
+
     // Validate required variations
     if (productDetail?.variations) {
       for (const v of productDetail.variations) {
@@ -167,7 +176,7 @@ export const UserProductModal: React.FC<UserProductModalProps> = ({
       });
 
       onClose();
-      openCart();
+      showSuccess(`تمت إضافة "${product.name}" إلى السلة بنجاح`);
       if (onSuccess) onSuccess();
     } catch (err: any) {
       const message = err.response?.data?.message || 'حدث خطأ أثناء الإضافة إلى السلة';
@@ -415,16 +424,28 @@ export const UserProductModal: React.FC<UserProductModalProps> = ({
           <button
             type="button"
             onClick={handleAddToCart}
-            disabled={isAdding}
-            className="flex-1 flex items-center justify-between px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 disabled:opacity-50 text-white font-bold text-xs sm:text-sm shadow-xl shadow-primary/20 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+            disabled={isAdding || isClosed}
+            className={`flex-1 flex items-center justify-between px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-xl transition-all ${
+              isClosed
+                ? 'bg-slate-300 dark:bg-white/10 text-slate-500 dark:text-neutral-400 cursor-not-allowed opacity-80'
+                : 'bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 disabled:opacity-50 text-white shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] cursor-pointer'
+            }`}
           >
             <div className="flex items-center gap-1.5 sm:gap-2">
               {isAdding ? (
                 <FiLoader className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+              ) : isClosed ? (
+                <FiClock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
               ) : (
                 <FiShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               )}
-              <span>{isAdding ? 'جاري الإضافة...' : 'إضافة إلى السلة'}</span>
+              <span>
+                {isAdding
+                  ? 'جاري الإضافة...'
+                  : isClosed
+                  ? 'المطعم مغلق حالياً'
+                  : 'إضافة إلى السلة'}
+              </span>
             </div>
 
             <div className="flex items-baseline gap-1">

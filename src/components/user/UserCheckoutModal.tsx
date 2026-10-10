@@ -16,6 +16,7 @@ import {
 import { userApi } from '../../services/userService';
 import { useUserCart } from '../../context/UserCartContext';
 import { useUserUUID } from '../../hooks/useUserUUID';
+import { useBusinessSetup } from '../../hooks/useBusinessSetup';
 
 interface UserCheckoutModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export const UserCheckoutModal: React.FC<UserCheckoutModalProps> = ({ isOpen, on
   const navigate = useNavigate();
   const { uuId } = useUserUUID();
   const { module, setModule, grandTotals, itemCount, clearCart } = useUserCart();
+  const { isClosed, workingHoursText } = useBusinessSetup();
 
   // Form State
   const [name, setName] = useState('');
@@ -112,6 +114,15 @@ export const UserCheckoutModal: React.FC<UserCheckoutModalProps> = ({ isOpen, on
     e.preventDefault();
     setErrorMessage(null);
     setOutOfRangeData(null);
+
+    if (isClosed) {
+      setErrorMessage(
+        workingHoursText
+          ? `المطعم مغلق الان ${workingHoursText}`
+          : 'المطعم مغلق حالياً، نعتذر عن استقبال الطلبات في الوقت الحالي.'
+      );
+      return;
+    }
 
     // Validation
     if (!name.trim()) {

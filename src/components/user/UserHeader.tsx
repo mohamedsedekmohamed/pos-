@@ -145,7 +145,16 @@ export const UserHeader: React.FC = () => {
             {/* Cart Trigger Button */}
             <button
               type="button"
-              onClick={openCart}
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.innerWidth >= 1280) {
+                  const desktopAside = document.querySelector('aside');
+                  if (desktopAside) {
+                    desktopAside.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    return;
+                  }
+                }
+                openCart();
+              }}
               className={`relative flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-md sm:shadow-lg shadow-primary/25 transition-all hover:scale-105 active:scale-95 ${
                 isBumping ? 'animate-cart-bump ring-2 ring-primary/50' : ''
               }`}

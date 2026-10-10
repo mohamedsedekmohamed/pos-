@@ -12,12 +12,14 @@ import {
   FiSidebar,
   FiMaximize2,
   FiPackage,
+  FiClock,
 } from 'react-icons/fi';
 import { userApi } from '../../services/userService';
 import { useLanguage } from '../../context/LanguageContext';
 import { UserCartProvider, useUserCart } from '../../context/UserCartContext';
 import { useBusinessSetup, formatImageUrl } from '../../hooks/useBusinessSetup';
 import { UserHeader } from '../../components/user/UserHeader';
+import { UserClosedBanner } from '../../components/user/UserClosedBanner';
 import { UserCategoryNav } from '../../components/user/UserCategoryNav';
 import { UserProductCard } from '../../components/user/UserProductCard';
 import { UserProductModal } from '../../components/user/UserProductModal';
@@ -27,7 +29,7 @@ import type { UserProduct } from '../../types/user';
 
 const UserMenuContent: React.FC = () => {
   const { language } = useLanguage();
-  const { business } = useBusinessSetup();
+  const { business, isClosed } = useBusinessSetup();
   const {
     itemCount,
     grandTotals,
@@ -113,6 +115,9 @@ const UserMenuContent: React.FC = () => {
 
       {/* Main Full-Width Header */}
       <UserHeader />
+
+      {/* Sticky Top Banner when Restaurant is Closed */}
+      <UserClosedBanner />
 
       {/* Hero Notice Banner with Ambient Animation */}
       {business?.branch_cover && (
@@ -332,7 +337,13 @@ const UserMenuContent: React.FC = () => {
                   </div>
                 ) : (
                   cartItems.map((item) => {
-                    const imageUrl = formatImageUrl(item.image);
+                    const itemName = item.product?.name || item.name || 'وجبة';
+                    const imageUrl = formatImageUrl(item.product?.image || item.image);
+                    const itemPrice = Number(
+                      item.total_final_price ??
+                      item.item_final_price ??
+                      ((item.product?.final_price || item.product?.price || item.final_price || item.price || 0) * (item.quantity || 1))
+                    );
 
                     return (
                       <div
@@ -345,7 +356,7 @@ const UserMenuContent: React.FC = () => {
                             {imageUrl ? (
                               <img
                                 src={imageUrl}
-                                alt={item.name}
+                                alt={itemName}
                                 className="w-full h-full object-cover"
                               />
                             ) : (
@@ -358,7 +369,7 @@ const UserMenuContent: React.FC = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-1">
                               <h4 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1">
-                                {item.name}
+                                {itemName}
                               </h4>
                               <button
                                 type="button"
@@ -433,7 +444,7 @@ const UserMenuContent: React.FC = () => {
 
                           <div className="text-left">
                             <span className="text-xs font-black text-slate-900 dark:text-white">
-                              {Number(item.item_final_price || item.final_price * item.quantity).toFixed(2)}
+                              {itemPrice.toFixed(2)}
                             </span>
                             <span className="text-[9px] text-slate-500 dark:text-neutral-400 mr-1 font-semibold">ج.م</span>
                           </div>
@@ -486,12 +497,28 @@ const UserMenuContent: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => setIsCheckoutOpen(true)}
-                    disabled={isBusy}
-                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-xl shadow-primary/25 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                    onClick={() => {
+                      if (isClosed) return;
+                      setIsCheckoutOpen(true);
+                    }}
+                    disabled={isBusy || isClosed}
+                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-bold text-xs sm:text-sm shadow-xl transition-all ${
+                      isClosed
+                        ? 'bg-slate-300 dark:bg-white/10 text-slate-500 dark:text-neutral-400 cursor-not-allowed opacity-80'
+                        : 'bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 text-white shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 cursor-pointer'
+                    }`}
                   >
-                    <span>إتمام وتأكيد الطلب</span>
-                    <FiArrowLeft className="w-4 h-4" />
+                    {isClosed ? (
+                      <>
+                        <FiClock className="w-4 h-4 text-amber-500" />
+                        <span>المطعم مغلق حالياً</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>إتمام وتأكيد الطلب</span>
+                        <FiArrowLeft className="w-4 h-4" />
+                      </>
+                    )}
                   </button>
                 </div>
               )}

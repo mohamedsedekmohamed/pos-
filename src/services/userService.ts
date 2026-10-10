@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getUserUUID } from '../hooks/useUserUUID';
+import { notifyApiError } from '../context/ToastContext';
 import type {
   UserCategory,
   UserSubCategory,
@@ -48,12 +49,41 @@ userAxios.interceptors.request.use((config) => {
   return config;
 });
 
+// Response interceptor: handle 400 Bad Request (Closed Restaurant / Cart errors) without breaking UI
+userAxios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    const responseData = error.response?.data;
+    const message = responseData?.message;
+
+    if (status === 400 && message) {
+      const isClosed =
+        typeof message === 'string' &&
+        (message.includes('المطعم مغلق') ||
+          message.includes('مواعيد العمل') ||
+          message.toLowerCase().includes('closed'));
+
+      notifyApiError(message, isClosed);
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export const userApi = {
   // ── 1. Business Setup ──
-  getBusinessSetup: async (): Promise<UserBusinessSetup | null> => {
+  getBusinessSetup: async (lang?: string): Promise<UserBusinessSetup | null> => {
     try {
+      const activeLang =
+        lang ||
+        (typeof window !== 'undefined' ? localStorage.getItem('pos_language') || 'ar' : 'ar');
+
       const { data } = await userAxios.get<{ status: boolean; data: UserBusinessSetup }>(
-        '/api/user/business-setup'
+        '/api/user/business-setup',
+        {
+          params: { lang: activeLang },
+        }
       );
       return data.data || null;
     } catch (error) {
@@ -180,13 +210,27 @@ export const userApi = {
 
   clearCart: async (module?: UserOrderModule): Promise<any> => {
     const uuId = getUserUUID();
-    const { data } = await userAxios.delete('/api/user/cart/clear', {
-      params: {
-        uu_id: uuId,
-        module,
-      },
-    });
-    return data;
+    try {
+      const { data } = await userAxios.delete('/api/user/cart/clear', {
+        params: {
+          uu_id: uuId,
+          module,
+        },
+      });
+      return data;
+    } catch (err: any) {
+      // Fallback in case backend uses /api/user/cart/clear
+      if (err.response?.status === 404) {
+        const { data } = await userAxios.delete('/api/user/cart/clear', {
+          params: {
+            uu_id: uuId,
+            module,
+          },
+        });
+        return data;
+      }
+      throw err;
+    }
   },
 
   // ── 8. Orders & Checkout ──

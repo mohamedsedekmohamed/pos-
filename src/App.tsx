@@ -4,6 +4,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { queryClient } from './lib/queryClient';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { ToastProvider } from './context/ToastContext';
 import { AuthProvider } from './context/AuthContext';
 import { ShiftProvider } from './context/ShiftContext';
 import { OrderTypeProvider } from './context/OrderTypeContext';
@@ -24,8 +25,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <LanguageProvider>
-          <BrowserRouter>
-            <AuthProvider>
+          <ToastProvider>
+            <BrowserRouter>
+              <AuthProvider>
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
@@ -65,8 +67,9 @@ function App() {
               </Routes>
             </AuthProvider>
           </BrowserRouter>
-        </LanguageProvider>
-      </ThemeProvider>
+        </ToastProvider>
+      </LanguageProvider>
+    </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
