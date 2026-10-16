@@ -19,7 +19,6 @@ import type {
 
 export const USER_API_BASE_URL = 'https://ecommerce.mazoom.online';
 
-// Dedicated Axios instance strictly for /api/user/* (No Auth, relies on device uu_id)
 export const userAxios = axios.create({
   baseURL: USER_API_BASE_URL,
   headers: {
@@ -29,7 +28,6 @@ export const userAxios = axios.create({
   timeout: 15_000,
 });
 
-// Automatically inject uu_id and lang headers on every outgoing request
 userAxios.interceptors.request.use((config) => {
   const uuId = getUserUUID();
   if (uuId) {
@@ -49,7 +47,6 @@ userAxios.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: handle 400 Bad Request (Closed Restaurant / Cart errors) without breaking UI
 userAxios.interceptors.response.use(
   (response) => response,
   (error) => {
