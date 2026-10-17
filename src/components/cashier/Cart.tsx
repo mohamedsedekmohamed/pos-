@@ -1,5 +1,6 @@
 import React from 'react';
 import { FiTrash2, FiPlus, FiMinus, FiShoppingCart } from 'react-icons/fi';
+import { MdTableBar } from 'react-icons/md';
 import { useOrderType } from '../../context/OrderTypeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import type { ApiCartItem, ApiCartGrandTotals } from '../../types/cashier';
@@ -23,7 +24,7 @@ const Cart: React.FC<CartProps> = ({
   onClearCart,
   onCheckoutClick,
 }) => {
-  const { orderTypeLabel } = useOrderType();
+  const { orderType, orderTypeLabel, selectedTable, setIsTablePickerOpen } = useOrderType();
   const { t, renderLocalized } = useLanguage();
   const subtotal = grandTotals?.grand_total_price || 0;
   const taxAmount = grandTotals?.grand_total_tax || 0;
@@ -57,9 +58,74 @@ const Cart: React.FC<CartProps> = ({
         )}
       </div>
 
+      {/* Dine-in Table Banner */}
+      {orderType === 'dinein' && (
+        <div className="mx-3 mt-3 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-50/80 to-blue-50/80 dark:from-indigo-950/40 dark:to-slate-800 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-between shadow-xs">
+          {selectedTable ? (
+            <>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-primary/25">
+                  <MdTableBar className="w-4.5 h-4.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 block leading-tight truncate">
+                    {selectedTable.hall_name || t('selected_table')}
+                  </span>
+                  <span className="text-xs font-black text-slate-800 dark:text-white truncate block">
+                    {selectedTable.name}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsTablePickerOpen(true)}
+                className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 bg-white dark:bg-slate-700 px-2.5 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-700/60 shadow-xs hover:shadow transition-all cursor-pointer whitespace-nowrap shrink-0"
+              >
+                {t('change_table')}
+              </button>
+            </>
+          ) : (
+            <div className="w-full flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <MdTableBar className="w-5 h-5 text-amber-500 shrink-0" />
+                <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                  {t('no_table_selected_title')}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsTablePickerOpen(true)}
+                className="text-[11px] font-black bg-primary text-white px-2.5 py-1.5 rounded-xl shadow-xs shadow-primary/25 hover:scale-[1.02] transition-all cursor-pointer whitespace-nowrap"
+              >
+                {t('select_table_btn')}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Items */}
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {items.length === 0 ? (
+        {orderType === 'dinein' && !selectedTable ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-16 px-4 text-center">
+            <div className="w-16 h-16 rounded-3xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-500 flex items-center justify-center mb-3 shadow-inner">
+              <MdTableBar className="w-8 h-8" />
+            </div>
+            <p className="text-sm text-slate-700 dark:text-slate-200 font-bold mb-1">
+              {t('no_table_selected_title')}
+            </p>
+            <p className="text-xs text-slate-400 max-w-[200px] mb-4">
+              {t('no_table_selected_desc')}
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsTablePickerOpen(true)}
+              className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-primary to-indigo-600 text-white text-xs font-black shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+            >
+              {t('select_table_btn')}
+            </button>
+          </div>
+        ) : items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-4">
               <FiShoppingCart className="w-8 h-8 text-slate-300 dark:text-slate-600" />
@@ -178,7 +244,7 @@ const Cart: React.FC<CartProps> = ({
           {/* Checkout */}
           <button
             onClick={onCheckoutClick}
-            disabled={isLoading}
+            disabled={isLoading || (orderType === 'dinein' && !selectedTable)}
             className="w-full py-3.5 rounded-xl bg-gradient-to-l from-emerald-600 to-teal-600 text-white font-bold text-base hover:from-emerald-700 hover:to-teal-700 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
           >
             ✅ {t('checkout')}

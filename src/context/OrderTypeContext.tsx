@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useLanguage } from './LanguageContext';
 
-export type OrderType = 'takeaway' | 'dinein' | 'delivery';
+export type OrderType = 'dinein' | 'takeaway' | 'delivery';
 
 export interface OrderTypeOption {
   type: OrderType;
@@ -9,18 +9,30 @@ export interface OrderTypeOption {
   iconName: string;
 }
 
+export interface SelectedTable {
+  id: number;
+  name: string;
+  hall_id?: number;
+  hall_name?: string;
+}
+
 export const ORDER_TYPES: OrderTypeOption[] = [
-  { type: 'takeaway', label: 'سفري', iconName: 'bag' },
-  { type: 'dinein', label: 'محلي', iconName: 'coffee' },
+  { type: 'dinein', label: 'طاولة', iconName: 'coffee' },
+  { type: 'takeaway', label: 'تيك أواى', iconName: 'bag' },
   { type: 'delivery', label: 'توصيل', iconName: 'truck' },
 ];
 
 const STORAGE_KEY_ORDER_TYPE = 'pos_order_type';
+const STORAGE_KEY_SELECTED_TABLE = 'pos_selected_table';
 
 interface OrderTypeContextType {
   orderType: OrderType;
   setOrderType: (type: OrderType) => void;
   orderTypeLabel: string;
+  selectedTable: SelectedTable | null;
+  setSelectedTable: (table: SelectedTable | null) => void;
+  isTablePickerOpen: boolean;
+  setIsTablePickerOpen: (open: boolean) => void;
 }
 
 const OrderTypeContext = createContext<OrderTypeContextType | undefined>(undefined);
@@ -43,13 +55,40 @@ export const OrderTypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } catch {
       // Ignore parse errors
     }
-    return 'takeaway';
+    return 'dinein';
   });
+
+  const [selectedTable, setSelectedTableState] = useState<SelectedTable | null>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_SELECTED_TABLE);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch {
+      // Ignore parse errors
+    }
+    return null;
+  });
+
+  const [isTablePickerOpen, setIsTablePickerOpen] = useState(false);
 
   const setOrderType = (newType: OrderType) => {
     setOrderTypeState(newType);
     try {
       localStorage.setItem(STORAGE_KEY_ORDER_TYPE, newType);
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
+  const setSelectedTable = (table: SelectedTable | null) => {
+    setSelectedTableState(table);
+    try {
+      if (table) {
+        localStorage.setItem(STORAGE_KEY_SELECTED_TABLE, JSON.stringify(table));
+      } else {
+        localStorage.removeItem(STORAGE_KEY_SELECTED_TABLE);
+      }
     } catch {
       // Ignore storage errors
     }
@@ -73,6 +112,10 @@ export const OrderTypeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         orderType,
         setOrderType,
         orderTypeLabel,
+        selectedTable,
+        setSelectedTable,
+        isTablePickerOpen,
+        setIsTablePickerOpen,
       }}
     >
       {children}

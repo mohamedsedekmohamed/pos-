@@ -12,7 +12,7 @@ const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { hasActiveShift } = useShift();
-  const { orderType, setOrderType } = useOrderType();
+  const { orderType, setOrderType, selectedTable, setIsTablePickerOpen } = useOrderType();
   const { language, toggleLanguage, t } = useLanguage();
   const { business, logoUrl } = useBusinessSetup();
 
@@ -43,10 +43,36 @@ const Header: React.FC = () => {
 
       {/* Center: Order Type Selector (نوع الطلب) */}
       <div className="flex items-center bg-slate-100 dark:bg-slate-900/90 p-1 sm:p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-inner gap-1 sm:gap-2">
+        {/* طاولة (Dine-in / Table) */}
+        <button
+          type="button"
+          onClick={() => {
+            setOrderType('dinein');
+            setIsTablePickerOpen(true);
+          }}
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 min-w-[95px] sm:min-w-[130px] rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
+            orderType === 'dinein'
+              ? 'bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/25 scale-[1.02]'
+              : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-800'
+          }`}
+          title={t('dinein')}
+        >
+          <FiCoffee className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
+          <span>{t('dinein')}</span>
+          {selectedTable && (
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold truncate max-w-[80px] ${
+              orderType === 'dinein' ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'
+            }`}>
+              {selectedTable.name}
+            </span>
+          )}
+        </button>
+
+        {/* تيك أواى (Takeaway) */}
         <button
           type="button"
           onClick={() => setOrderType('takeaway')}
-          className={`flex items-center justify-center gap-2 px-4 sm:px-7 py-2 sm:py-2.5 min-w-[95px] sm:min-w-[130px] rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 min-w-[95px] sm:min-w-[130px] rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
             orderType === 'takeaway'
               ? 'bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/25 scale-[1.02]'
               : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-800'
@@ -57,24 +83,11 @@ const Header: React.FC = () => {
           <span>{t('takeaway')}</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => setOrderType('dinein')}
-          className={`flex items-center justify-center gap-2 px-4 sm:px-7 py-2 sm:py-2.5 min-w-[95px] sm:min-w-[130px] rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
-            orderType === 'dinein'
-              ? 'bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/25 scale-[1.02]'
-              : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-800'
-          }`}
-          title={t('dinein')}
-        >
-          <FiCoffee className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
-          <span>{t('dinein')}</span>
-        </button>
-
+        {/* توصيل (Delivery) */}
         <button
           type="button"
           onClick={() => setOrderType('delivery')}
-          className={`flex items-center justify-center gap-2 px-4 sm:px-7 py-2 sm:py-2.5 min-w-[95px] sm:min-w-[130px] rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 min-w-[95px] sm:min-w-[130px] rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
             orderType === 'delivery'
               ? 'bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/25 scale-[1.02]'
               : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-800'

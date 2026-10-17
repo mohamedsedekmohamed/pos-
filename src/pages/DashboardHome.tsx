@@ -13,6 +13,7 @@ import CheckoutModal, { type CheckoutMeta } from '../components/cashier/Checkout
 import ReceiptModal, { type ReceiptOrderData } from '../components/cashier/ReceiptModal';
 import ShiftBar from '../components/cashier/ShiftBar';
 import StockRecipeConfirmModal from '../components/cashier/StockRecipeConfirmModal';
+import TablePickerModal from '../components/cashier/TablePickerModal';
 import { useLanguage } from '../context/LanguageContext';
 import type { Product, AddToCartPayload, UpdateCartPayload, CheckoutPayload } from '../types/cashier';
 
@@ -20,7 +21,7 @@ const DashboardHome: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { hasActiveShift, isCheckingShift, isEndModalOpen, activeShift, activeDevice } = useShift();
-  const { orderType, orderTypeLabel } = useOrderType();
+  const { orderType, orderTypeLabel, selectedTable, isTablePickerOpen, setIsTablePickerOpen } = useOrderType();
   const { t, renderLocalized } = useLanguage();
 
   // Redirect to shift page if no active shift is found (and modal is not open)
@@ -29,6 +30,13 @@ const DashboardHome: React.FC = () => {
       navigate('/dashboard/shift', { replace: true });
     }
   }, [isCheckingShift, hasActiveShift, isEndModalOpen, navigate]);
+
+  // If in dine-in mode and no table is selected yet, prompt cashier to choose a table
+  useEffect(() => {
+    if (orderType === 'dinein' && !selectedTable) {
+      setIsTablePickerOpen(true);
+    }
+  }, [orderType, selectedTable, setIsTablePickerOpen]);
 
   // ── State ──
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -74,8 +82,13 @@ const DashboardHome: React.FC = () => {
 
   // ── Cart API ──
   const { data: cartData, isLoading: loadingCart } = useQuery({
-    queryKey: ['cart', orderType],
-    queryFn: () => cashierApi.getCart(orderType),
+    queryKey: ['cart', orderType, orderType === 'dinein' ? selectedTable?.id : null],
+    queryFn: () =>
+      cashierApi.getCart(
+        orderType,
+        orderType === 'dinein' ? selectedTable?.id : undefined
+      ),
+    enabled: orderType !== 'dinein' || !!selectedTable?.id,
   });
 
   const cartItems = cartData?.data || [];
@@ -85,6 +98,7 @@ const DashboardHome: React.FC = () => {
     mutationFn: cashierApi.addToCart,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
       setStockConfirm(null);
     },
     onError: (error: any, variables: AddToCartPayload) => {
@@ -123,17 +137,26 @@ const DashboardHome: React.FC = () => {
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: UpdateCartPayload }) =>
       cashierApi.updateCartItem(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
+    },
   });
 
   const removeMutation = useMutation({
     mutationFn: cashierApi.removeCartItem,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
+    },
   });
 
   const clearMutation = useMutation({
     mutationFn: cashierApi.clearCart,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
+    },
   });
 
   const checkoutMutation = useMutation({
@@ -153,7 +176,7 @@ const DashboardHome: React.FC = () => {
           customerName: pending.payload.name,
           customerPhone: pending.payload.phone,
           deliveryAddress: pending.payload.address,
-          tableName: pending.meta?.tableName,
+          tableName: pending.meta?.tableName || selectedTable?.name,
           orderNote: pending.payload.note,
           items: pending.items,
           totals: pending.totals || {
@@ -170,6 +193,7 @@ const DashboardHome: React.FC = () => {
         setIsReceiptModalOpen(true);
       }
       queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
       setIsCheckoutModalOpen(false);
     },
   });
@@ -177,22 +201,32 @@ const DashboardHome: React.FC = () => {
   // ── Cart Actions ──
   const handleAddToCart = useCallback(
     (payload: AddToCartPayload) => {
+      if (orderType === 'dinein' && !selectedTable?.id) {
+        setIsTablePickerOpen(true);
+        alert(t('table_required_alert'));
+        return;
+      }
+
       addMutation.mutate({
         ...payload,
+        table_id: orderType === 'dinein' ? selectedTable?.id : undefined,
+        hall_table_id: orderType === 'dinein' ? selectedTable?.id : undefined,
         without_recipe: payload.without_recipe ?? false,
       });
     },
-    [addMutation]
+    [addMutation, orderType, selectedTable, setIsTablePickerOpen, t]
   );
 
   const handleConfirmWithoutRecipe = useCallback(() => {
     if (!stockConfirm?.payload) return;
     const retryPayload: AddToCartPayload = {
       ...stockConfirm.payload,
+      table_id: orderType === 'dinein' ? selectedTable?.id : undefined,
+      hall_table_id: orderType === 'dinein' ? selectedTable?.id : undefined,
       without_recipe: true,
     };
     addMutation.mutate(retryPayload);
-  }, [stockConfirm, addMutation]);
+  }, [stockConfirm, addMutation, orderType, selectedTable]);
 
   const handleCancelWithoutRecipe = useCallback(() => {
     setStockConfirm(null);
@@ -213,6 +247,8 @@ const DashboardHome: React.FC = () => {
 
       const updatePayload: UpdateCartPayload = {
         module: orderType,
+        table_id: orderType === 'dinein' ? selectedTable?.id : undefined,
+        hall_table_id: orderType === 'dinein' ? selectedTable?.id : undefined,
         quantity: newQty,
         notes: item.notes,
         variations: item.variations?.map((v) => ({
@@ -226,7 +262,7 @@ const DashboardHome: React.FC = () => {
 
       updateMutation.mutate({ id, payload: updatePayload });
     },
-    [cartItems, orderType, updateMutation, removeMutation]
+    [cartItems, orderType, selectedTable, updateMutation, removeMutation]
   );
 
   const handleRemoveItem = useCallback(
@@ -237,20 +273,33 @@ const DashboardHome: React.FC = () => {
   );
 
   const handleClearCart = useCallback(() => {
-    clearMutation.mutate();
-  }, [clearMutation]);
+    clearMutation.mutate({
+      module: orderType,
+      table_id: orderType === 'dinein' ? selectedTable?.id : undefined,
+    });
+  }, [clearMutation, orderType, selectedTable]);
 
   const handleCheckoutSubmit = useCallback(
     (payload: CheckoutPayload, meta?: CheckoutMeta) => {
+      const finalPayload: CheckoutPayload = {
+        ...payload,
+        module: orderType,
+        hall_table_id: orderType === 'dinein' ? (selectedTable?.id || payload.hall_table_id) : payload.hall_table_id,
+        table_id: orderType === 'dinein' ? (selectedTable?.id || payload.table_id) : payload.table_id,
+      };
+
       pendingOrderRef.current = {
-        payload,
-        meta,
+        payload: finalPayload,
+        meta: {
+          ...meta,
+          tableName: selectedTable?.name || meta?.tableName,
+        },
         items: [...cartItems],
         totals: grandTotals ? { ...grandTotals } : undefined,
       };
-      checkoutMutation.mutate(payload);
+      checkoutMutation.mutate(finalPayload);
     },
-    [cartItems, grandTotals, checkoutMutation]
+    [cartItems, grandTotals, checkoutMutation, orderType, selectedTable]
   );
 
   return (
@@ -328,6 +377,12 @@ const DashboardHome: React.FC = () => {
         isSubmitting={addMutation.isPending}
         serverMessage={stockConfirm?.serverMessage}
         productName={stockConfirm?.productName}
+      />
+
+      {/* Table Picker Modal */}
+      <TablePickerModal
+        isOpen={isTablePickerOpen}
+        onClose={() => setIsTablePickerOpen(false)}
       />
     </div>
   );

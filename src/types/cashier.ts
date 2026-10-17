@@ -88,6 +88,7 @@ export interface Hall {
   name: string;
   branch_id: number;
   status: boolean;
+  tables_count?: number;
 }
 
 export interface HallTable {
@@ -97,6 +98,8 @@ export interface HallTable {
   branch_id: number;
   status: boolean;
   qr: string;
+  has_active_cart?: boolean;
+  cart_items_count?: number;
 }
 
 // ── Cashier ──
@@ -177,6 +180,8 @@ export interface ApiCartAddon {
 export interface ApiCartItem {
   id: number;
   module: string;
+  hall_table_id?: number | null;
+  table_id?: number | null;
   quantity: number | any; // API payload shows `{}` but probably a number, will use `number` and cast if needed
   notes: string | null;
   cashier_id: number;
@@ -218,6 +223,8 @@ export interface AddToCartPayload {
   module: 'takeaway' | 'dinein' | 'delivery';
   product_id: number;
   quantity: number;
+  table_id?: number | null;
+  hall_table_id?: number | null;
   without_recipe?: boolean;
   notes?: string | null;
   variations?: AddToCartVariationPayload[] | null;
@@ -227,6 +234,8 @@ export interface AddToCartPayload {
 export interface UpdateCartPayload {
   module: 'takeaway' | 'dinein' | 'delivery';
   quantity: number;
+  table_id?: number | null;
+  hall_table_id?: number | null;
   without_recipe?: boolean;
   notes?: string | null;
   variations?: AddToCartVariationPayload[] | null;
@@ -236,6 +245,7 @@ export interface UpdateCartPayload {
 export interface CheckoutPayload {
   module: 'takeaway' | 'dinein' | 'delivery';
   hall_table_id?: number | null;
+  table_id?: number | null;
   address?: string | null;
   phone?: string | null;
   name?: string | null;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiX, FiCheck, FiShoppingBag, FiCoffee, FiTruck } from 'react-icons/fi';
 import { useOrderType } from '../../context/OrderTypeContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -22,14 +22,21 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
   onCheckout,
   isSubmitting,
 }) => {
-  const { orderType, orderTypeLabel } = useOrderType();
+  const { orderType, orderTypeLabel, selectedTable } = useOrderType();
   const { dir, t } = useLanguage();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
-  const [hallTableId, setHallTableId] = useState<number | ''>('');
-  const [tableName, setTableName] = useState<string>('');
+  const [hallTableId, setHallTableId] = useState<number | ''>(selectedTable?.id ?? '');
+  const [tableName, setTableName] = useState<string>(selectedTable?.name ?? '');
+
+  useEffect(() => {
+    if (selectedTable) {
+      setHallTableId(selectedTable.id);
+      setTableName(selectedTable.name);
+    }
+  }, [selectedTable]);
 
   if (!isOpen) return null;
 

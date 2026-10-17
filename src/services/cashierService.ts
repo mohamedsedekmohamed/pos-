@@ -121,9 +121,13 @@ export const cashierApi = {
   },
 
   // ── Cart ──
-  getCart: async (module: string): Promise<ApiCartResponse> => {
+  getCart: async (module: string, tableId?: number | null): Promise<ApiCartResponse> => {
+    const params: Record<string, any> = { module };
+    if (tableId) {
+      params.table_id = tableId;
+    }
     const { data } = await api.get<ApiCartResponse>('/api/cashier/cart', {
-      params: { module },
+      params,
     });
     return data;
   },
@@ -154,8 +158,8 @@ export const cashierApi = {
     await api.delete(`/api/cashier/cart/${cartId}`);
   },
 
-  clearCart: async (): Promise<void> => {
-    await api.delete('/api/cashier/cart/clear');
+  clearCart: async (params?: { module?: string; table_id?: number | null }): Promise<void> => {
+    await api.delete('/api/cashier/cart/clear', { params });
   },
 
   // ── Orders ──
