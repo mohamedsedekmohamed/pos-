@@ -59,24 +59,19 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose }) =
       }
     });
 
-    if (list.length === 0) {
-      list.push({
-        id: 1,
-        name: language === 'en' ? 'Main Cash Treasury (Default)' : 'الخزينة النقدية الرئيسية (افتراضي)',
-        icon: null,
-      });
-    }
-
     return list;
   }, [accounts, activeShift, expenseLists, language]);
 
-  // Auto-select first account if available
+  // Keep selected financialId in sync with available accounts
   React.useEffect(() => {
-    if (availableAccounts.length > 0 && financialId === '') {
-      const shiftAcc = activeShift?.financial_account_id
-        ? availableAccounts.find((a) => a.id === activeShift.financial_account_id)
-        : null;
-      setFinancialId(shiftAcc ? shiftAcc.id : availableAccounts[0].id);
+    if (availableAccounts.length > 0) {
+      const exists = availableAccounts.some((a) => a.id === Number(financialId));
+      if (!exists || financialId === '') {
+        const shiftAcc = activeShift?.financial_account_id
+          ? availableAccounts.find((a) => a.id === activeShift.financial_account_id)
+          : null;
+        setFinancialId(shiftAcc ? shiftAcc.id : availableAccounts[0].id);
+      }
     }
   }, [availableAccounts, activeShift, financialId]);
 

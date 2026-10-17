@@ -54,24 +54,19 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
       });
     }
 
-    if (list.length === 0) {
-      list.push({
-        id: 1,
-        name: language === 'en' ? 'Main Cash Treasury (Default)' : 'الخزينة النقدية الرئيسية (افتراضي)',
-        icon: null,
-      });
-    }
-
     return list;
   }, [accounts, activeShift, language]);
 
-  // Auto-select first account or shift account if available
+  // Keep selected financialAccountId in sync with available accounts
   useEffect(() => {
-    if (availableAccounts.length > 0 && financialAccountId === '') {
-      const preferred = activeShift?.financial_account_id
-        ? availableAccounts.find((a) => a.id === activeShift.financial_account_id)
-        : null;
-      setFinancialAccountId(preferred ? preferred.id : availableAccounts[0].id);
+    if (availableAccounts.length > 0) {
+      const exists = availableAccounts.some((a) => a.id === Number(financialAccountId));
+      if (!exists || financialAccountId === '') {
+        const preferred = activeShift?.financial_account_id
+          ? availableAccounts.find((a) => a.id === activeShift.financial_account_id)
+          : null;
+        setFinancialAccountId(preferred ? preferred.id : availableAccounts[0].id);
+      }
     }
   }, [availableAccounts, activeShift, financialAccountId]);
 
@@ -86,9 +81,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalAccountId = financialAccountId !== ''
-      ? Number(financialAccountId)
-      : (activeShift?.financial_account_id ? Number(activeShift.financial_account_id) : (availableAccounts[0]?.id || 1));
+    const selectedAcc = availableAccounts.find((a) => a.id === Number(financialAccountId));
+    const finalAccountId = selectedAcc
+      ? selectedAcc.id
+      : (availableAccounts[0]?.id || (activeShift?.financial_account_id ? Number(activeShift.financial_account_id) : undefined));
 
     const finalTableId = hallTableId !== ''
       ? Number(hallTableId)
