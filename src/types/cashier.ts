@@ -132,6 +132,20 @@ export interface Shift {
   cashier?: any;
   branch?: any;
   financial_account?: any;
+  financial_accounts_summary?: ShiftAccountBreakdown[];
+  accounts_breakdown?: ShiftAccountBreakdown[];
+}
+
+export interface ShiftAccountBreakdown {
+  id: number | null;
+  name: string;
+  icon?: string | null;
+  is_start_account?: boolean;
+  start_amount: number;
+  orders_total: number;
+  expenses_total: number;
+  expected_amount: number;
+  net_amount: number;
 }
 
 export interface StartShiftPayload {
@@ -291,6 +305,8 @@ export interface UpdateCartPayload {
 
 export interface CheckoutPayload {
   module: 'takeaway' | 'dinein' | 'delivery';
+  financial_account_id?: number | null;
+  financial_id?: number | null;
   hall_table_id?: number | null;
   table_id?: number | null;
   address?: string | null;
@@ -306,6 +322,8 @@ export interface Order {
   cashier_id: number;
   cashier_man_id: number;
   hall_table_id: number | null;
+  financial_account_id?: number | null;
+  financial_account?: CashierFinancialAccount | null;
   module: string;
   address: string | null;
   note: string | null;

@@ -25,16 +25,18 @@ import type {
 
 export const cashierApi = {
   // ── Categories ──
-  getParentCategories: async (): Promise<Category[]> => {
+  getParentCategories: async (params?: { lang?: string }): Promise<Category[]> => {
     const { data } = await api.get<{ status: boolean; data: Category[] }>(
-      '/api/cashier/categories/parents'
+      '/api/cashier/categories/parents',
+      { params }
     );
     return data.data;
   },
 
-  getSubCategories: async (): Promise<SubCategory[]> => {
+  getSubCategories: async (params?: { category_id?: number; lang?: string }): Promise<SubCategory[]> => {
     const { data } = await api.get<{ status: boolean; data: SubCategory[] }>(
-      '/api/cashier/categories/sub'
+      '/api/cashier/categories/sub',
+      { params }
     );
     return data.data;
   },
@@ -43,6 +45,7 @@ export const cashierApi = {
   getProducts: async (params?: {
     category_id?: number;
     sub_category_id?: number;
+    lang?: string;
   }): Promise<Product[]> => {
     const { data } = await api.get<{ status: boolean; data: Product[] }>(
       '/api/cashier/products',
@@ -51,17 +54,19 @@ export const cashierApi = {
     return data.data;
   },
 
-  getProductDetail: async (productId: number): Promise<ProductDetail> => {
+  getProductDetail: async (productId: number, params?: { lang?: string }): Promise<ProductDetail> => {
     const { data } = await api.get<{ status: boolean; data: ProductDetail }>(
-      `/api/cashier/products/${productId}`
+      `/api/cashier/products/${productId}`,
+      { params }
     );
     return data.data;
   },
 
   // ── Addons ──
-  getAddons: async (): Promise<Addon[]> => {
+  getAddons: async (params?: { lang?: string }): Promise<Addon[]> => {
     const { data } = await api.get<{ status: boolean; data: Addon[] }>(
-      '/api/cashier/addons'
+      '/api/cashier/addons',
+      { params }
     );
     return data.data;
   },
@@ -75,17 +80,18 @@ export const cashierApi = {
   },
 
   // ── Halls & Tables ──
-  getHalls: async (): Promise<Hall[]> => {
+  getHalls: async (params?: { lang?: string }): Promise<Hall[]> => {
     const { data } = await api.get<{ status: boolean; data: Hall[] }>(
-      '/api/cashier/halls'
+      '/api/cashier/halls',
+      { params }
     );
     return data.data;
   },
 
-  getHallTables: async (hallId: number): Promise<HallTable[]> => {
+  getHallTables: async (hallId: number, params?: { lang?: string }): Promise<HallTable[]> => {
     const { data } = await api.get<{ status: boolean; data: HallTable[] }>(
       '/api/cashier/hall-tables',
-      { params: { hall_id: hallId } }
+      { params: { hall_id: hallId, ...params } }
     );
     return data.data;
   },
@@ -123,16 +129,18 @@ export const cashierApi = {
   },
 
   // ── Financial Accounts & Expenses ──
-  getFinancialAccounts: async (): Promise<CashierFinancialAccount[]> => {
+  getFinancialAccounts: async (params?: { branch_id?: number; lang?: string }): Promise<CashierFinancialAccount[]> => {
     const { data } = await api.get<{ status: boolean; data: CashierFinancialAccount[] }>(
-      '/api/cashier/financial-accounts'
+      '/api/cashier/financial-accounts',
+      { params }
     );
     return data.data;
   },
 
-  getExpenseLists: async (): Promise<CashierExpenseList[]> => {
+  getExpenseLists: async (params?: { lang?: string }): Promise<CashierExpenseList[]> => {
     const { data } = await api.get<{ status: boolean; data: CashierExpenseList[] }>(
-      '/api/cashier/expense-lists'
+      '/api/cashier/expense-lists',
+      { params }
     );
     return data.data;
   },

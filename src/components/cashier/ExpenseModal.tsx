@@ -12,7 +12,7 @@ interface ExpenseModalProps {
 
 export const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
-  const { dir, t } = useLanguage();
+  const { dir, t, language } = useLanguage();
 
   const [expenseListId, setExpenseListId] = useState<number | ''>('');
   const [financialId, setFinancialId] = useState<number | ''>('');
@@ -23,15 +23,15 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose }) =
 
   // Fetch expense categories
   const { data: expenseLists = [], isLoading: loadingLists } = useQuery({
-    queryKey: ['cashier', 'expense-lists'],
-    queryFn: cashierApi.getExpenseLists,
+    queryKey: ['cashier', 'expense-lists', language],
+    queryFn: () => cashierApi.getExpenseLists({ lang: language }),
     enabled: isOpen,
   });
 
   // Fetch financial accounts
   const { data: accounts = [], isLoading: loadingAccounts } = useQuery({
-    queryKey: ['cashier', 'financial-accounts'],
-    queryFn: cashierApi.getFinancialAccounts,
+    queryKey: ['cashier', 'financial-accounts', language],
+    queryFn: () => cashierApi.getFinancialAccounts({ lang: language }),
     enabled: isOpen,
   });
 

@@ -14,6 +14,7 @@ import {
   FiCheckCircle,
   FiRefreshCw,
   FiAlertCircle,
+  FiCreditCard,
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -554,6 +555,103 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
                 </span>
               </div>
             </div>
+
+            {/* ═══════════════════════════════════════════════════ */}
+            {/* FINANCIAL ACCOUNTS SHIFT BREAKDOWN                 */}
+            {/* ═══════════════════════════════════════════════════ */}
+            {((shiftResult?.financial_accounts_summary && shiftResult.financial_accounts_summary.length > 0) ||
+              (shiftResult?.accounts_breakdown && shiftResult.accounts_breakdown.length > 0)) && (
+              <div className="rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 p-3.5 mb-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                      <FiCreditCard className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                        {t('financial_accounts_breakdown')}
+                      </h4>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                        {t('financial_accounts_breakdown_desc')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {(shiftResult.financial_accounts_summary || shiftResult.accounts_breakdown)!.map((accItem, idx) => {
+                    const accName = accItem.name || `Account #${accItem.id}`;
+                    return (
+                      <div
+                        key={accItem.id || idx}
+                        className="p-3 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-xs"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {accItem.icon ? (
+                              <img
+                                src={accItem.icon}
+                                alt=""
+                                className="w-5 h-5 object-contain rounded shrink-0"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <FiDollarSign className="w-4 h-4 text-slate-400 shrink-0" />
+                            )}
+                            <span className="text-xs font-bold text-slate-800 dark:text-white truncate">
+                              {accName}
+                            </span>
+                            {accItem.is_start_account && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-200 dark:border-emerald-800 shrink-0">
+                                {t('start_account_badge')}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-end">
+                            <span className="text-xs font-black font-mono text-primary">
+                              {Number(accItem.expected_amount ?? accItem.net_amount ?? 0).toFixed(2)}
+                            </span>
+                            <span className="text-[9px] text-slate-400 ms-1">{currencyLabel}</span>
+                          </div>
+                        </div>
+
+                        {/* Breakdown: start_amount + orders - expenses */}
+                        <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-700/50 text-[10.5px]">
+                          <div className="text-center p-1 rounded-lg bg-slate-50 dark:bg-slate-700/30">
+                            <span className="block text-[9px] text-slate-400 dark:text-slate-500 mb-0.5">
+                              {t('start_balance_col')}
+                            </span>
+                            <span className="font-bold font-mono text-slate-700 dark:text-slate-300">
+                              +{Number(accItem.start_amount || 0).toFixed(2)}
+                            </span>
+                          </div>
+
+                          <div className="text-center p-1 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20">
+                            <span className="block text-[9px] text-emerald-600/80 dark:text-emerald-400/80 mb-0.5">
+                              {t('orders_sales_col')}
+                            </span>
+                            <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                              +{Number(accItem.orders_total || 0).toFixed(2)}
+                            </span>
+                          </div>
+
+                          <div className="text-center p-1 rounded-lg bg-rose-50/50 dark:bg-rose-950/20">
+                            <span className="block text-[9px] text-rose-600/80 dark:text-rose-400/80 mb-0.5">
+                              {t('expenses_paid_col')}
+                            </span>
+                            <span className="font-bold font-mono text-rose-600 dark:text-rose-400">
+                              -{Number(accItem.expenses_total || 0).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Audit Details */}
             <div className="rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 p-3.5 space-y-2 mb-6 text-xs">

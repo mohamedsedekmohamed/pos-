@@ -168,6 +168,19 @@ export const translations = {
     notes_placeholder: 'أي تعليمات إضافية...',
     optional: 'اختياري...',
 
+    // ── Payment & Financial Accounts ──
+    payment_account: 'حساب الدفع / الخزينة',
+    payment_account_required: 'يرجى اختيار حساب الدفع المالي لإتمام الطلب',
+    financial_accounts_breakdown: 'تقرير وتفاصيل الحسابات المالية في الشيفت',
+    financial_accounts_breakdown_desc: 'توزيع المبالغ والمبيعات والمصروفات لكل حساب مالي',
+    account_name: 'الحساب المالي',
+    start_balance_col: 'رصيد البداية',
+    orders_sales_col: 'المبيعات (+)',
+    expenses_paid_col: 'المصروفات (-)',
+    expected_net_col: 'الصافي المتوقع (=)',
+    start_account_badge: 'حساب بدء الشيفت',
+    no_accounts_available: 'لا توجد حسابات مالية نشطة',
+
     // ── Profile Page ──
     account_settings: 'إعدادات الحساب',
     back: 'الرجوع',
@@ -379,6 +392,19 @@ export const translations = {
     order_notes: 'Order Notes',
     notes_placeholder: 'Any special instructions...',
     optional: 'Optional...',
+
+    // ── Payment & Financial Accounts ──
+    payment_account: 'Payment Account / Treasury',
+    payment_account_required: 'Please select a financial account for payment',
+    financial_accounts_breakdown: 'Financial Accounts Shift Breakdown',
+    financial_accounts_breakdown_desc: 'Breakdown of start amounts, order sales, and expenses per account',
+    account_name: 'Financial Account',
+    start_balance_col: 'Start Balance',
+    orders_sales_col: 'Sales (+)',
+    expenses_paid_col: 'Expenses (-)',
+    expected_net_col: 'Expected Net (=)',
+    start_account_badge: 'Start Shift Account',
+    no_accounts_available: 'No active financial accounts available',
 
     // ── Profile Page ──
     account_settings: 'Account Settings',

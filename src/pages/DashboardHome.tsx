@@ -22,7 +22,7 @@ const DashboardHome: React.FC = () => {
   const { user } = useAuth();
   const { hasActiveShift, isCheckingShift, isEndModalOpen, activeShift, activeDevice } = useShift();
   const { orderType, orderTypeLabel, selectedTable, isTablePickerOpen, setIsTablePickerOpen } = useOrderType();
-  const { t, renderLocalized } = useLanguage();
+  const { t, renderLocalized, language } = useLanguage();
 
   // Redirect to shift page if no active shift is found (and modal is not open)
   useEffect(() => {
@@ -60,29 +60,30 @@ const DashboardHome: React.FC = () => {
 
   // ── API Queries ──
   const { data: categories = [], isLoading: loadingCategories } = useQuery({
-    queryKey: ['parent-categories'],
-    queryFn: cashierApi.getParentCategories,
+    queryKey: ['parent-categories', language],
+    queryFn: () => cashierApi.getParentCategories({ lang: language }),
   });
 
   // Filter only product-type categories for display
   const productCategories = categories.filter((c) => c.type === 'product');
 
   const { data: products = [], isLoading: loadingProducts } = useQuery({
-    queryKey: ['products', selectedCategoryId],
+    queryKey: ['products', selectedCategoryId, language],
     queryFn: () =>
-      cashierApi.getProducts(
-        selectedCategoryId ? { category_id: selectedCategoryId } : undefined
-      ),
+      cashierApi.getProducts({
+        ...(selectedCategoryId ? { category_id: selectedCategoryId } : {}),
+        lang: language,
+      }),
   });
 
   const { data: addons = [] } = useQuery({
-    queryKey: ['addons'],
-    queryFn: cashierApi.getAddons,
+    queryKey: ['addons', language],
+    queryFn: () => cashierApi.getAddons({ lang: language }),
   });
 
   // ── Cart API ──
   const { data: cartData, isLoading: loadingCart } = useQuery({
-    queryKey: ['cart', orderType, orderType === 'dinein' ? selectedTable?.id : null],
+    queryKey: ['cart', orderType, orderType === 'dinein' ? selectedTable?.id : null, language],
     queryFn: () =>
       cashierApi.getCart(
         orderType,

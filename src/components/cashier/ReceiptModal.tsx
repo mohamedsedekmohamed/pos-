@@ -28,7 +28,7 @@ interface ReceiptModalProps {
 }
 
 const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData }) => {
-  const { language, dir, t } = useLanguage();
+  const { language, dir, t, renderLocalized } = useLanguage();
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const receiptRef = useRef<HTMLDivElement>(null);
 
@@ -212,9 +212,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {orderData.items.map((item, idx) => {
-                    const productName = typeof item.product?.name === 'string'
-                      ? item.product.name
-                      : (language === 'ar' ? (item.product?.name as any)?.ar || (item.product?.name as any)?.en : (item.product?.name as any)?.en || (item.product?.name as any)?.ar) || 'Product';
+                    const productName = renderLocalized(item.product?.name) || 'Product';
                     const qty = typeof item.quantity === 'number' ? item.quantity : 1;
                     const itemTotal = Number(item.total_final_price || item.total_price || 0).toFixed(2);
                     const unitPrice = (Number(itemTotal) / qty).toFixed(2);
@@ -229,7 +227,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
                             <div className="text-[9.5px] text-gray-600 pl-1">
                               {item.variations.map((v, vIdx) => (
                                 <div key={vIdx}>
-                                  • {v.name}: {v.options?.map((o) => `${o.name} (${Number(o.price || 0).toFixed(2)})`).join(', ')}
+                                  • {renderLocalized(v.name)}: {v.options?.map((o) => `${renderLocalized(o.name)} (${Number(o.price || 0).toFixed(2)})`).join(', ')}
                                 </div>
                               ))}
                             </div>
@@ -240,7 +238,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
                             <div className="text-[9.5px] text-gray-600 pl-1">
                               {item.addons.map((a, aIdx) => (
                                 <div key={aIdx}>
-                                  + {a.name} ({Number(a.price || 0).toFixed(2)})
+                                  + {renderLocalized(a.name)} ({Number(a.price || 0).toFixed(2)})
                                 </div>
                               ))}
                             </div>

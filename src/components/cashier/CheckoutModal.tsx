@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiCheck, FiShoppingBag, FiCoffee, FiTruck } from 'react-icons/fi';
+import { useQuery } from '@tanstack/react-query';
+import { FiX, FiCheck, FiShoppingBag, FiCoffee, FiTruck, FiCreditCard } from 'react-icons/fi';
 import { useOrderType } from '../../context/OrderTypeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { cashierApi } from '../../services/cashierService';
 import type { CheckoutPayload } from '../../types/cashier';
 import TableSelector from './TableSelector';
 
@@ -23,13 +25,28 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
   isSubmitting,
 }) => {
   const { orderType, orderTypeLabel, selectedTable } = useOrderType();
-  const { dir, t } = useLanguage();
+  const { dir, t, language, renderLocalized } = useLanguage();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
   const [hallTableId, setHallTableId] = useState<number | ''>(selectedTable?.id ?? '');
   const [tableName, setTableName] = useState<string>(selectedTable?.name ?? '');
+  const [financialAccountId, setFinancialAccountId] = useState<number | ''>('');
+
+  // Fetch financial accounts
+  const { data: accounts = [], isLoading: loadingAccounts } = useQuery({
+    queryKey: ['cashier', 'financial-accounts', language],
+    queryFn: () => cashierApi.getFinancialAccounts({ lang: language }),
+    enabled: isOpen,
+  });
+
+  // Auto-select first account if not selected
+  useEffect(() => {
+    if (accounts.length > 0 && financialAccountId === '') {
+      setFinancialAccountId(accounts[0].id);
+    }
+  }, [accounts, financialAccountId]);
 
   useEffect(() => {
     if (selectedTable) {
@@ -42,12 +59,17 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (financialAccountId === '') {
+      alert(t('payment_account_required'));
+      return;
+    }
     if (orderType === 'dinein' && hallTableId === '') {
       return; // Prevent submission if no table is selected
     }
     onCheckout(
       {
         module: orderType,
+        financial_account_id: Number(financialAccountId),
         name: name || null,
         phone: phone || null,
         address: orderType === 'delivery' ? (address || null) : null,
@@ -102,6 +124,72 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <span className="text-[11px] text-slate-400 dark:text-slate-500 bg-white/60 dark:bg-slate-700/50 px-2.5 py-1 rounded-lg border border-slate-200/50 dark:border-slate-600/50">
                 {t('set_from_navbar')}
               </span>
+            </div>
+
+            {/* Financial Account Payment Selector (Required) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                  <FiCreditCard className="w-4 h-4 text-primary" />
+                  <span>{t('payment_account')}</span>
+                  <span className="text-red-500">*</span>
+                </label>
+                {loadingAccounts && (
+                  <span className="text-xs text-slate-400">...</span>
+                )}
+              </div>
+
+              {accounts.length === 0 && !loadingAccounts ? (
+                <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-xs">
+                  {t('no_accounts_available', 'لا توجد حسابات مالية')}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {accounts.map((acc) => {
+                    const isSelected = financialAccountId === acc.id;
+                    const accName = renderLocalized(acc.name) || (typeof acc.name === 'string' ? acc.name : `Account #${acc.id}`);
+                    return (
+                      <button
+                        key={acc.id}
+                        type="button"
+                        onClick={() => setFinancialAccountId(acc.id)}
+                        className={`flex items-center gap-2 p-2.5 rounded-xl border text-start transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-primary/10 border-primary dark:bg-primary/20 dark:border-primary text-primary shadow-xs ring-2 ring-primary/30'
+                            : 'bg-slate-50 dark:bg-slate-700/40 border-slate-200 dark:border-slate-600/80 text-slate-700 dark:text-slate-300 hover:border-primary/50'
+                        }`}
+                      >
+                        {acc.icon ? (
+                          <img
+                            src={acc.icon}
+                            alt=""
+                            className="w-6 h-6 object-contain rounded-md shrink-0"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div
+                            className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-xs ${
+                              isSelected
+                                ? 'bg-primary text-white'
+                                : 'bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300'
+                            }`}
+                          >
+                            <FiCreditCard className="w-3.5 h-3.5" />
+                          </div>
+                        )}
+                        <span className="text-xs font-bold truncate leading-tight">
+                          {accName}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {financialAccountId === '' && (
+                <p className="text-xs text-red-500">{t('payment_account_required')}</p>
+              )}
             </div>
 
             {/* Name */}
@@ -182,8 +270,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
           <button
             type="submit"
             form="checkout-form"
-            disabled={isSubmitting}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-l from-emerald-600 to-teal-600 text-white font-bold text-base hover:from-emerald-700 hover:to-teal-700 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+            disabled={isSubmitting || financialAccountId === '' || (orderType === 'dinein' && hallTableId === '')}
+            className="w-full py-3.5 rounded-xl bg-gradient-to-l from-emerald-600 to-teal-600 text-white font-bold text-base hover:from-emerald-700 hover:to-teal-700 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

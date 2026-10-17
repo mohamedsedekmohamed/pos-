@@ -20,7 +20,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
   onAddToCart,
 }) => {
   const { orderType } = useOrderType();
-  const { dir, t, renderLocalized } = useLanguage();
+  const { dir, t, renderLocalized, language } = useLanguage();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariations, setSelectedVariations] = useState<SelectedVariation[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<SelectedAddon[]>([]);
@@ -28,8 +28,8 @@ const ProductModal: React.FC<ProductModalProps> = ({
 
   // Fetch product detail with variations
   const { data: detail, isLoading } = useQuery({
-    queryKey: ['product-detail', product?.id],
-    queryFn: () => cashierApi.getProductDetail(product!.id),
+    queryKey: ['product-detail', product?.id, language],
+    queryFn: () => cashierApi.getProductDetail(product!.id, { lang: language }),
     enabled: !!product,
   });
 

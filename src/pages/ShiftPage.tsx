@@ -73,8 +73,8 @@ const ShiftPage: React.FC = () => {
 
   // Fetch Financial Accounts
   const { data: financialAccounts = [], isLoading: loadingAccounts } = useQuery({
-    queryKey: ['cashier', 'financial-accounts'],
-    queryFn: cashierApi.getFinancialAccounts,
+    queryKey: ['cashier', 'financial-accounts', language],
+    queryFn: () => cashierApi.getFinancialAccounts({ lang: language }),
   });
 
   // Auto-select first cashier if available and not selected

@@ -24,8 +24,8 @@ const TablePickerModal: React.FC<TablePickerModalProps> = ({
 
   // Fetch Halls
   const { data: halls = [], isLoading: loadingHalls } = useQuery<Hall[]>({
-    queryKey: ['halls'],
-    queryFn: cashierApi.getHalls,
+    queryKey: ['halls', language],
+    queryFn: () => cashierApi.getHalls({ lang: language }),
     enabled: isOpen,
   });
 
@@ -42,8 +42,8 @@ const TablePickerModal: React.FC<TablePickerModalProps> = ({
 
   // Fetch Tables for the selected Hall
   const { data: tables = [], isLoading: loadingTables } = useQuery<HallTable[]>({
-    queryKey: ['tables', selectedHallId],
-    queryFn: () => cashierApi.getHallTables(selectedHallId!),
+    queryKey: ['tables', selectedHallId, language],
+    queryFn: () => cashierApi.getHallTables(selectedHallId!, { lang: language }),
     enabled: isOpen && !!selectedHallId,
   });
 

@@ -25,13 +25,23 @@ export const api = axios.create({
   timeout: 15_000,
 });
 
-// ── Request interceptor: attach Bearer token ──
+// ── Request interceptor: attach Bearer token & language headers ──
 api.interceptors.request.use(
   (config) => {
     const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    const currentLang = (typeof localStorage !== 'undefined' ? localStorage.getItem('pos_language') : null) || 'ar';
+    config.headers['Accept-Language'] = currentLang;
+    config.headers['lang'] = currentLang;
+
+    config.params = {
+      lang: currentLang,
+      ...config.params,
+    };
+
     return config;
   },
   (error) => Promise.reject(error)

@@ -15,8 +15,8 @@ const TableSelector: React.FC<TableSelectorProps> = ({ selectedTableId, onSelect
 
   // Fetch Halls
   const { data: halls = [], isLoading: loadingHalls } = useQuery({
-    queryKey: ['halls'],
-    queryFn: cashierApi.getHalls,
+    queryKey: ['halls', language],
+    queryFn: () => cashierApi.getHalls({ lang: language }),
   });
 
   // Automatically select the first hall when loaded
@@ -28,8 +28,8 @@ const TableSelector: React.FC<TableSelectorProps> = ({ selectedTableId, onSelect
 
   // Fetch Tables for the selected Hall
   const { data: tables = [], isLoading: loadingTables } = useQuery({
-    queryKey: ['tables', selectedHallId],
-    queryFn: () => cashierApi.getHallTables(selectedHallId!),
+    queryKey: ['tables', selectedHallId, language],
+    queryFn: () => cashierApi.getHallTables(selectedHallId!, { lang: language }),
     enabled: !!selectedHallId,
   });
 
