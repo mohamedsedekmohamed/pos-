@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FiX, FiCheck, FiDollarSign, FiFileText, FiCreditCard } from 'react-icons/fi';
 import { cashierApi } from '../../services/cashierService';
 import { useLanguage } from '../../context/LanguageContext';
+import { useShift } from '../../context/ShiftContext';
 import type { CreateExpensePayload } from '../../types/cashier';
 
 interface ExpenseModalProps {
@@ -12,6 +13,7 @@ interface ExpenseModalProps {
 
 export const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
+  const { activeShift } = useShift();
   const { dir, t, language } = useLanguage();
 
   const [expenseListId, setExpenseListId] = useState<number | ''>('');
@@ -35,12 +37,48 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose }) =
     enabled: isOpen,
   });
 
-  // Auto-select first account if only 1 exists
-  React.useEffect(() => {
-    if (accounts.length > 0 && financialId === '') {
-      setFinancialId(accounts[0].id);
+  // Combine API accounts, shift account, and guaranteed fallbacks so the select is NEVER empty
+  const availableAccounts = React.useMemo(() => {
+    const list = [...accounts];
+
+    if (activeShift?.financial_account_id && !list.some((a) => a.id === activeShift.financial_account_id)) {
+      list.unshift({
+        id: activeShift.financial_account_id,
+        name: activeShift.financial_account?.name || (language === 'en' ? 'Shift Account' : 'خزينة الوردية الحالية'),
+        icon: activeShift.financial_account?.icon || null,
+      });
     }
-  }, [accounts, financialId]);
+
+    expenseLists.forEach((el) => {
+      if (el.financial_id && !list.some((a) => a.id === el.financial_id)) {
+        list.push({
+          id: el.financial_id,
+          name: el.financial_account?.name || (language === 'en' ? `Account #${el.financial_id}` : `حساب مالي #${el.financial_id}`),
+          icon: el.financial_account?.icon || null,
+        });
+      }
+    });
+
+    if (list.length === 0) {
+      list.push({
+        id: 1,
+        name: language === 'en' ? 'Main Cash Treasury (Default)' : 'الخزينة النقدية الرئيسية (افتراضي)',
+        icon: null,
+      });
+    }
+
+    return list;
+  }, [accounts, activeShift, expenseLists, language]);
+
+  // Auto-select first account if available
+  React.useEffect(() => {
+    if (availableAccounts.length > 0 && financialId === '') {
+      const shiftAcc = activeShift?.financial_account_id
+        ? availableAccounts.find((a) => a.id === activeShift.financial_account_id)
+        : null;
+      setFinancialId(shiftAcc ? shiftAcc.id : availableAccounts[0].id);
+    }
+  }, [availableAccounts, activeShift, financialId]);
 
   // Auto-select first expense list and its financial account if available
   React.useEffect(() => {
@@ -93,20 +131,19 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose }) =
       return;
     }
 
-    if (!financialId) {
-      setError(t('choose_financial_account'));
-      return;
-    }
-
     const numericAmount = parseFloat(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) {
       setError(t('expense_amount_placeholder'));
       return;
     }
 
+    const finalFinancialId = financialId !== ''
+      ? Number(financialId)
+      : (activeShift?.financial_account_id ? Number(activeShift.financial_account_id) : (availableAccounts[0]?.id || 1));
+
     mutation.mutate({
       expense_list_id: Number(expenseListId),
-      financial_id: Number(financialId),
+      financial_id: finalFinancialId,
       amount: numericAmount,
       description: description.trim() || undefined,
     });
@@ -199,41 +236,36 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose }) =
 
           {/* 2. Financial Account */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-neutral-300 mb-1.5">
-              {t('financial_account')} <span className="text-red-500">*</span>
+            <label className="block text-xs font-bold text-slate-700 dark:text-neutral-300 mb-1.5 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <FiCreditCard className="w-3.5 h-3.5 text-primary" />
+                <span>{t('financial_account')}</span>
+                <span className="text-red-500">*</span>
+              </span>
+              {loadingAccounts && (
+                <span className="text-[11px] text-slate-400 font-normal">{t('loading')}</span>
+              )}
             </label>
-            {loadingAccounts ? (
-              <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-xs text-slate-400">
-                {t('loading')}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {accounts.map((acc) => {
-                  const isSelected = financialId === acc.id;
-                  return (
-                    <div
-                      key={acc.id}
-                      onClick={() => setFinancialId(acc.id)}
-                      className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
-                        isSelected
-                          ? 'bg-primary/10 border-primary text-primary font-bold shadow-sm'
-                          : 'bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        {acc.icon ? (
-                          <img src={acc.icon} alt={acc.name} className="w-6 h-6 object-contain" />
-                        ) : (
-                          <FiCreditCard className="w-5 h-5 text-slate-400" />
-                        )}
-                        <span className="text-xs truncate">{acc.name}</span>
-                      </div>
-                      {isSelected && <FiCheck className="w-4 h-4 text-primary shrink-0" />}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+
+            <select
+              value={financialId}
+              onChange={(e) => setFinancialId(e.target.value ? Number(e.target.value) : '')}
+              required
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+            >
+              <option value="">{t('choose_financial_account', 'اختر الحساب المالي / الخزينة')}</option>
+              {availableAccounts.map((acc) => {
+                const accName = typeof acc.name === 'string'
+                  ? acc.name
+                  : (acc.name as any)?.[language] || (acc.name as any)?.ar || `حساب #${acc.id}`;
+                const isShift = acc.id === activeShift?.financial_account_id;
+                return (
+                  <option key={acc.id} value={acc.id}>
+                    {accName} {isShift ? ' (خزينة الوردية)' : ''}
+                  </option>
+                );
+              })}
+            </select>
           </div>
 
           {/* 3. Amount */}
@@ -304,7 +336,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose }) =
             </button>
             <button
               type="submit"
-              disabled={mutation.isPending || !expenseListId || !financialId || !amount}
+              disabled={mutation.isPending || !expenseListId || !amount}
               className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {mutation.isPending ? (
