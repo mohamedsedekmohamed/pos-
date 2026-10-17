@@ -42,12 +42,26 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose }) =
     }
   }, [accounts, financialId]);
 
-  // Auto-select first expense list if only 1 exists
+  // Auto-select first expense list and its financial account if available
   React.useEffect(() => {
     if (expenseLists.length > 0 && expenseListId === '') {
-      setExpenseListId(expenseLists[0].id);
+      const first = expenseLists[0];
+      setExpenseListId(first.id);
+      if (first.financial_id) {
+        setFinancialId(first.financial_id);
+      }
     }
   }, [expenseLists, expenseListId]);
+
+  const handleExpenseListChange = (id: number | '') => {
+    setExpenseListId(id);
+    if (id) {
+      const selected = expenseLists.find((item) => item.id === id);
+      if (selected?.financial_id) {
+        setFinancialId(selected.financial_id);
+      }
+    }
+  };
 
   const mutation = useMutation({
     mutationFn: (payload: CreateExpensePayload) => cashierApi.createExpense(payload),
@@ -156,18 +170,31 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose }) =
             ) : (
               <select
                 value={expenseListId}
-                onChange={(e) => setExpenseListId(e.target.value ? Number(e.target.value) : '')}
+                onChange={(e) => handleExpenseListChange(e.target.value ? Number(e.target.value) : '')}
                 required
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
               >
                 <option value="">{t('choose_expense_list')}</option>
                 {expenseLists.map((item) => (
                   <option key={item.id} value={item.id}>
-                    {item.name}
+                    {item.name} {item.financial_account?.name ? `(${item.financial_account.name})` : ''}
                   </option>
                 ))}
               </select>
             )}
+            {expenseListId && (() => {
+              const selected = expenseLists.find((el) => el.id === expenseListId);
+              if (selected?.financial_account?.name) {
+                return (
+                  <div className="mt-1.5 text-[11px] text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                    <FiCreditCard className="w-3.5 h-3.5 shrink-0" />
+                    <span>الحساب المالي المرتبط بالبند:</span>
+                    <span className="font-bold underline">{selected.financial_account.name}</span>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
 
           {/* 2. Financial Account */}

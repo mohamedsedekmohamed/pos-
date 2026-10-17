@@ -177,6 +177,9 @@ export interface CashierExpenseList {
   id: number;
   name: string;
   description?: string | null;
+  financial_id?: number | null;
+  financial_account_id?: number | null;
+  financial_account?: CashierFinancialAccount | null;
 }
 
 export interface CashierExpense {
@@ -184,7 +187,9 @@ export interface CashierExpense {
   expense_list_id: number;
   expense_list_name?: string;
   financial_id: number;
+  financial_account_id?: number | null;
   financial_account_name?: string;
+  financial_account?: CashierFinancialAccount | null;
   amount: number;
   description?: string | null;
   shift_id?: number | null;
