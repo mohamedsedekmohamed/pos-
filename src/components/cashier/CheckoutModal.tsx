@@ -6,7 +6,6 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useShift } from '../../context/ShiftContext';
 import { cashierApi } from '../../services/cashierService';
 import type { CheckoutPayload } from '../../types/cashier';
-import TableSelector from './TableSelector';
 
 export interface CheckoutMeta {
   tableName?: string;
@@ -27,7 +26,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 }) => {
   const { orderType, orderTypeLabel, selectedTable } = useOrderType();
   const { activeShift } = useShift();
-  const { dir, t, language, renderLocalized } = useLanguage();
+  const { dir, t, language } = useLanguage();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -43,21 +42,38 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     enabled: isOpen,
   });
 
+  // Combine API accounts, shift account, and guaranteed fallbacks so the select is NEVER empty
+  const availableAccounts = React.useMemo(() => {
+    const list = [...accounts];
+
+    if (activeShift?.financial_account_id && !list.some((a) => a.id === activeShift.financial_account_id)) {
+      list.unshift({
+        id: activeShift.financial_account_id,
+        name: activeShift.financial_account?.name || (language === 'en' ? 'Shift Account' : 'خزينة الوردية الحالية'),
+        icon: activeShift.financial_account?.icon || null,
+      });
+    }
+
+    if (list.length === 0) {
+      list.push({
+        id: 1,
+        name: language === 'en' ? 'Main Cash Treasury (Default)' : 'الخزينة النقدية الرئيسية (افتراضي)',
+        icon: null,
+      });
+    }
+
+    return list;
+  }, [accounts, activeShift, language]);
+
   // Auto-select first account or shift account if available
   useEffect(() => {
-    if (accounts.length > 0) {
-      if (financialAccountId === '') {
-        const preferred = activeShift?.financial_account_id
-          ? accounts.find((a) => a.id === activeShift.financial_account_id)
-          : null;
-        setFinancialAccountId(preferred ? preferred.id : accounts[0].id);
-      }
-    } else if (activeShift?.financial_account_id && financialAccountId === '') {
-      setFinancialAccountId(activeShift.financial_account_id);
-    } else if (financialAccountId === '') {
-      setFinancialAccountId(1);
+    if (availableAccounts.length > 0 && financialAccountId === '') {
+      const preferred = activeShift?.financial_account_id
+        ? availableAccounts.find((a) => a.id === activeShift.financial_account_id)
+        : null;
+      setFinancialAccountId(preferred ? preferred.id : availableAccounts[0].id);
     }
-  }, [accounts, activeShift, financialAccountId]);
+  }, [availableAccounts, activeShift, financialAccountId]);
 
   useEffect(() => {
     if (selectedTable) {
@@ -72,11 +88,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     e.preventDefault();
     const finalAccountId = financialAccountId !== ''
       ? Number(financialAccountId)
-      : (activeShift?.financial_account_id ? Number(activeShift.financial_account_id) : 1);
+      : (activeShift?.financial_account_id ? Number(activeShift.financial_account_id) : (availableAccounts[0]?.id || 1));
 
-    if (orderType === 'dinein' && hallTableId === '') {
-      return; // Prevent submission if no table is selected
-    }
+    const finalTableId = hallTableId !== ''
+      ? Number(hallTableId)
+      : (selectedTable?.id ? Number(selectedTable.id) : null);
+
     onCheckout(
       {
         module: orderType,
@@ -85,10 +102,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
         phone: phone || null,
         address: orderType === 'delivery' ? (address || null) : null,
         note: note || null,
-        hall_table_id: orderType === 'dinein' && hallTableId !== '' ? Number(hallTableId) : null,
+        hall_table_id: orderType === 'dinein' ? finalTableId : null,
       },
       {
-        tableName: orderType === 'dinein' ? tableName : undefined,
+        tableName: orderType === 'dinein' ? (tableName || selectedTable?.name) : undefined,
       }
     );
   };
@@ -99,7 +116,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={!isSubmitting ? onClose : undefined} />
 
       {/* Modal */}
-      <div className={`relative w-full transition-all duration-300 ${orderType === 'dinein' ? 'max-w-3xl' : 'max-w-md'} bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-4`}>
+      <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-4">
         
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
@@ -129,99 +146,57 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   <span className="block text-[11px] text-slate-500 dark:text-slate-400">{t('order_type_confirmed')}:</span>
                   <span className="block text-sm font-bold text-slate-900 dark:text-white">
                     {orderTypeLabel}
+                    {orderType === 'dinein' && (tableName || selectedTable?.name) && (
+                      <span className="text-primary font-bold ms-1">
+                        ({tableName || selectedTable?.name})
+                      </span>
+                    )}
                   </span>
                 </div>
               </div>
-              <span className="text-[11px] text-slate-400 dark:text-slate-500 bg-white/60 dark:bg-slate-700/50 px-2.5 py-1 rounded-lg border border-slate-200/50 dark:border-slate-600/50">
-                {t('set_from_navbar')}
-              </span>
+              {orderType === 'dinein' && (tableName || selectedTable?.name) ? (
+                <span className="text-[11px] text-indigo-700 dark:text-indigo-300 bg-white/80 dark:bg-slate-700 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-slate-600 font-bold">
+                  طاولة معتمدة
+                </span>
+              ) : (
+                <span className="text-[11px] text-slate-400 dark:text-slate-500 bg-white/60 dark:bg-slate-700/50 px-2.5 py-1 rounded-lg border border-slate-200/50 dark:border-slate-600/50">
+                  {t('set_from_navbar')}
+                </span>
+              )}
             </div>
 
-            {/* Financial Account Payment Selector (Required) */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
-                  <FiCreditCard className="w-4 h-4 text-primary" />
+            {/* Financial Account Selection (Select Dropdown) */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-neutral-300 mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <FiCreditCard className="w-3.5 h-3.5 text-primary" />
                   <span>{t('payment_account')}</span>
                   <span className="text-red-500">*</span>
-                </label>
+                </span>
                 {loadingAccounts && (
-                  <span className="text-xs text-slate-400">...</span>
+                  <span className="text-[11px] text-slate-400 font-normal">{t('loading')}</span>
                 )}
-              </div>
+              </label>
 
-              {accounts.length === 0 && !loadingAccounts ? (
-                <div className="space-y-1">
-                  <div
-                    onClick={() => setFinancialAccountId(activeShift?.financial_account_id || 1)}
-                    className="p-3 rounded-2xl bg-primary/10 border-2 border-primary text-primary flex items-center justify-between cursor-pointer shadow-xs"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
-                        <FiCreditCard className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="block text-xs font-bold text-slate-900 dark:text-white">
-                          {activeShift?.financial_account?.name || 'الخزينة النقدية الرئيسية (معتمد)'}
-                        </span>
-                        <span className="block text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                          تم اعتماد حساب الدفع التلقائي للوردية
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
-                      <FiCheck className="w-4 h-4 shrink-0" />
-                      <span className="text-[11px] bg-primary/15 px-2 py-0.5 rounded-md">محدد</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {accounts.map((acc) => {
-                    const isSelected = financialAccountId === acc.id;
-                    const accName = renderLocalized(acc.name) || (typeof acc.name === 'string' ? acc.name : `Account #${acc.id}`);
-                    return (
-                      <button
-                        key={acc.id}
-                        type="button"
-                        onClick={() => setFinancialAccountId(acc.id)}
-                        className={`flex items-center gap-2 p-2.5 rounded-xl border text-start transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-primary/10 border-primary dark:bg-primary/20 dark:border-primary text-primary shadow-xs ring-2 ring-primary/30'
-                            : 'bg-slate-50 dark:bg-slate-700/40 border-slate-200 dark:border-slate-600/80 text-slate-700 dark:text-slate-300 hover:border-primary/50'
-                        }`}
-                      >
-                        {acc.icon ? (
-                          <img
-                            src={acc.icon}
-                            alt=""
-                            className="w-6 h-6 object-contain rounded-md shrink-0"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div
-                            className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-xs ${
-                              isSelected
-                                ? 'bg-primary text-white'
-                                : 'bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300'
-                            }`}
-                          >
-                            <FiCreditCard className="w-3.5 h-3.5" />
-                          </div>
-                        )}
-                        <span className="text-xs font-bold truncate leading-tight">
-                          {accName}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              {accounts.length > 0 && financialAccountId === '' && (
-                <p className="text-xs text-red-500">{t('payment_account_required')}</p>
-              )}
+              <select
+                value={financialAccountId}
+                onChange={(e) => setFinancialAccountId(e.target.value ? Number(e.target.value) : '')}
+                required
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              >
+                <option value="">{t('choose_financial_account', 'اختر حساب الدفع / الخزينة')}</option>
+                {availableAccounts.map((acc) => {
+                  const accName = typeof acc.name === 'string'
+                    ? acc.name
+                    : (acc.name as any)?.[language] || (acc.name as any)?.ar || `حساب #${acc.id}`;
+                  const isShift = acc.id === activeShift?.financial_account_id;
+                  return (
+                    <option key={acc.id} value={acc.id}>
+                      {accName} {isShift ? ' (خزينة الوردية)' : ''}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
 
             {/* Name */}
@@ -265,23 +240,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
             )}
 
-            {/* Hall Table (Only for dine-in) */}
-            {orderType === 'dinein' && (
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t('choose_table')}</label>
-                <TableSelector
-                  selectedTableId={hallTableId}
-                  onSelectTable={(id, name) => {
-                    setHallTableId(id);
-                    if (name) setTableName(name);
-                  }}
-                />
-                {hallTableId === '' && (
-                  <p className="text-xs text-red-500 mt-2">{t('select_table_error')}</p>
-                )}
-              </div>
-            )}
-
             {/* Note */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('order_notes')}</label>
@@ -302,7 +260,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
           <button
             type="submit"
             form="checkout-form"
-            disabled={isSubmitting || (orderType === 'dinein' && hallTableId === '')}
+            disabled={isSubmitting}
             className="w-full py-3.5 rounded-xl bg-gradient-to-l from-emerald-600 to-teal-600 text-white font-bold text-base hover:from-emerald-700 hover:to-teal-700 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
