@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSquare, FiMonitor, FiClock, FiAlertCircle, FiSettings } from 'react-icons/fi';
+import { FiSquare, FiMonitor, FiClock, FiAlertCircle, FiSettings, FiMinusCircle } from 'react-icons/fi';
 import { useShift } from '../../context/ShiftContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { EndShiftModal } from './EndShiftModal';
+import { ExpenseModal } from './ExpenseModal';
 
 interface ShiftBarProps {
   currentShift?: any;
@@ -25,6 +26,7 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
   } = useShift();
 
   const [elapsedTime, setElapsedTime] = useState<string>('');
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
 
   // Live timer for active shift duration
   useEffect(() => {
@@ -116,6 +118,17 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
               <span className="hidden sm:inline">{t('manage_shift')}</span>
             </button>
 
+            {/* Record Expense Button */}
+            <button
+              type="button"
+              onClick={() => setIsExpenseModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-bold transition-colors cursor-pointer"
+              title={t('record_expense')}
+            >
+              <FiMinusCircle className="w-3.5 h-3.5" />
+              <span>{t('record_expense')}</span>
+            </button>
+
             {/* End Shift Button */}
             <button
               type="button"
@@ -136,6 +149,11 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
           isEnding={isEndingShift}
           shift={activeShift}
           device={activeDevice}
+        />
+
+        <ExpenseModal
+          isOpen={isExpenseModalOpen}
+          onClose={() => setIsExpenseModalOpen(false)}
         />
       </>
     );

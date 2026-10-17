@@ -18,6 +18,8 @@ import {
   FiSun,
   FiMoon,
   FiGlobe,
+  FiDollarSign,
+  FiCreditCard,
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useShift } from '../context/ShiftContext';
@@ -52,6 +54,8 @@ const ShiftPage: React.FC = () => {
   } = useShift();
 
   const [selectedCashierId, setSelectedCashierId] = useState<number | ''>('');
+  const [startAmount, setStartAmount] = useState<string>('0');
+  const [selectedFinancialAccountId, setSelectedFinancialAccountId] = useState<number | ''>('');
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
 
@@ -67,6 +71,12 @@ const ShiftPage: React.FC = () => {
     queryFn: cashierApi.getCashiers,
   });
 
+  // Fetch Financial Accounts
+  const { data: financialAccounts = [], isLoading: loadingAccounts } = useQuery({
+    queryKey: ['cashier', 'financial-accounts'],
+    queryFn: cashierApi.getFinancialAccounts,
+  });
+
   // Auto-select first cashier if available and not selected
   useEffect(() => {
     if (cashiers.length > 0 && selectedCashierId === '') {
@@ -74,13 +84,26 @@ const ShiftPage: React.FC = () => {
     }
   }, [cashiers, selectedCashierId]);
 
+  // Auto-select first financial account if available and not selected
+  useEffect(() => {
+    if (financialAccounts.length > 0 && selectedFinancialAccountId === '') {
+      setSelectedFinancialAccountId(financialAccounts[0].id);
+    }
+  }, [financialAccounts, selectedFinancialAccountId]);
+
   const handleStartShift = async () => {
     if (!selectedCashierId) return;
     clearShiftError();
     setActionSuccessMessage(null);
     try {
       const selectedDevice = cashiers.find((c) => c.id === Number(selectedCashierId));
-      await startShift(Number(selectedCashierId), selectedDevice);
+      const parsedStartAmount = parseFloat(startAmount) || 0;
+      await startShift({
+        cashierId: Number(selectedCashierId),
+        device: selectedDevice,
+        startAmount: parsedStartAmount,
+        financialAccountId: selectedFinancialAccountId ? Number(selectedFinancialAccountId) : undefined,
+      });
       setActionSuccessMessage(t('shift_started_success'));
       setTimeout(() => {
         navigate('/dashboard', { replace: true });
@@ -440,6 +463,83 @@ const ShiftPage: React.FC = () => {
                   })}
                 </div>
               )}
+            </div>
+
+            {/* Starting Cash & Financial Account Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              {/* 1. Starting Cash (المبلغ الذي بدأ به) */}
+              <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 shadow-sm space-y-3">
+                <div className="flex items-center gap-2 text-slate-800 dark:text-white font-bold text-xs">
+                  <FiDollarSign className="w-4 h-4 text-primary" />
+                  <span>{t('start_amount')}</span>
+                </div>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    value={startAmount}
+                    onChange={(e) => setStartAmount(e.target.value)}
+                    placeholder={t('start_amount_placeholder')}
+                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary font-mono"
+                  />
+                  <span className="absolute left-3.5 rtl:right-auto rtl:left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                    {t('currency')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[0, 50, 100, 200, 500].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setStartAmount(val.toString())}
+                      className="px-2.5 py-1 rounded-lg text-xs font-bold font-mono bg-slate-100 hover:bg-primary/10 text-slate-700 hover:text-primary dark:bg-white/5 dark:hover:bg-primary/20 dark:text-slate-300 transition-colors cursor-pointer"
+                    >
+                      {val === 0 ? '0' : `+${val}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Financial Account Selection (الحساب المالي) */}
+              <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 shadow-sm space-y-3">
+                <div className="flex items-center gap-2 text-slate-800 dark:text-white font-bold text-xs">
+                  <FiCreditCard className="w-4 h-4 text-primary" />
+                  <span>{t('financial_account')}</span>
+                </div>
+                {loadingAccounts ? (
+                  <div className="p-3 text-xs text-slate-400 text-center">{t('loading')}</div>
+                ) : financialAccounts.length === 0 ? (
+                  <div className="p-3 text-xs text-slate-400 text-center">لا توجد حسابات مالية مضافة</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[140px] overflow-y-auto">
+                    {financialAccounts.map((acc) => {
+                      const isSelected = selectedFinancialAccountId === acc.id;
+                      return (
+                        <div
+                          key={acc.id}
+                          onClick={() => setSelectedFinancialAccountId(acc.id)}
+                          className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between text-xs ${
+                            isSelected
+                              ? 'bg-primary/10 border-primary text-primary font-bold shadow-sm'
+                              : 'bg-slate-50 dark:bg-white/[0.02] hover:bg-slate-100 dark:hover:bg-white/5 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            {acc.icon ? (
+                              <img src={acc.icon} alt={acc.name} className="w-5 h-5 object-contain" />
+                            ) : (
+                              <FiCreditCard className="w-4 h-4 text-slate-400 shrink-0" />
+                            )}
+                            <span className="truncate">{acc.name}</span>
+                          </div>
+                          {isSelected && <FiCheckCircle className="w-3.5 h-3.5 text-primary shrink-0" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Start Shift CTA */}

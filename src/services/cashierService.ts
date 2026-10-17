@@ -9,6 +9,11 @@ import type {
   Hall,
   HallTable,
   Shift,
+  StartShiftPayload,
+  CashierFinancialAccount,
+  CashierExpenseList,
+  CashierExpense,
+  CreateExpensePayload,
   ApiCartResponse,
   ApiCartItem,
   AddToCartPayload,
@@ -99,10 +104,7 @@ export const cashierApi = {
     return data;
   },
 
-  startShift: async (params: {
-    cashier_id: number;
-    cashier_man_id?: number | null;
-  }): Promise<Shift> => {
+  startShift: async (params: StartShiftPayload): Promise<Shift> => {
     const { data } = await api.post<{
       status: boolean;
       message: string;
@@ -117,6 +119,37 @@ export const cashierApi = {
       message: string;
       data: Shift;
     }>('/api/cashier/end-shift', params);
+    return data.data;
+  },
+
+  // ── Financial Accounts & Expenses ──
+  getFinancialAccounts: async (): Promise<CashierFinancialAccount[]> => {
+    const { data } = await api.get<{ status: boolean; data: CashierFinancialAccount[] }>(
+      '/api/cashier/financial-accounts'
+    );
+    return data.data;
+  },
+
+  getExpenseLists: async (): Promise<CashierExpenseList[]> => {
+    const { data } = await api.get<{ status: boolean; data: CashierExpenseList[] }>(
+      '/api/cashier/expense-lists'
+    );
+    return data.data;
+  },
+
+  getExpenses: async (shiftId?: number | null): Promise<{ data: CashierExpense[]; total_amount: number }> => {
+    const { data } = await api.get<{ status: boolean; data: CashierExpense[]; total_amount: number }>(
+      '/api/cashier/expenses',
+      { params: shiftId ? { shift_id: shiftId } : undefined }
+    );
+    return data;
+  },
+
+  createExpense: async (payload: CreateExpensePayload): Promise<CashierExpense> => {
+    const { data } = await api.post<{ status: boolean; data: CashierExpense }>(
+      '/api/cashier/expenses',
+      payload
+    );
     return data.data;
   },
 

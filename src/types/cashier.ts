@@ -118,6 +118,10 @@ export interface Shift {
   cashier_man_id: number;
   created_at: string;
   updated_at: string;
+  start_amount?: number;
+  financial_account_id?: number | null;
+  orders_total?: number;
+  expenses_total?: number;
   default_total_amount?: number;
   total_mony?: number;
   deficit?: number;
@@ -127,6 +131,14 @@ export interface Shift {
   cashier_man?: any;
   cashier?: any;
   branch?: any;
+  financial_account?: any;
+}
+
+export interface StartShiftPayload {
+  cashier_id: number;
+  cashier_man_id?: number | null;
+  start_amount?: number;
+  financial_account_id?: number;
 }
 
 export interface EndShiftPayload {
@@ -137,6 +149,41 @@ export interface EndShiftResult extends Shift {
   default_total_amount: number;
   total_mony: number;
   deficit: number;
+}
+
+// ── Financial Accounts & Expenses ──
+export interface CashierFinancialAccount {
+  id: number;
+  name: string;
+  icon: string | null;
+  balance?: number;
+}
+
+export interface CashierExpenseList {
+  id: number;
+  name: string;
+  description?: string | null;
+}
+
+export interface CashierExpense {
+  id: number;
+  expense_list_id: number;
+  expense_list_name?: string;
+  financial_id: number;
+  financial_account_name?: string;
+  amount: number;
+  description?: string | null;
+  shift_id?: number | null;
+  cashier_id?: number | null;
+  cashier_man_id?: number | null;
+  created_at: string;
+}
+
+export interface CreateExpensePayload {
+  expense_list_id: number;
+  financial_id: number;
+  amount: number;
+  description?: string;
 }
 
 // ── API Cart ──

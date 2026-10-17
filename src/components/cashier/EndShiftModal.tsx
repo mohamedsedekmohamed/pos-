@@ -472,6 +472,39 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
               </div>
             )}
 
+            {/* Breakdown Formula Banner */}
+            {(shiftResult?.start_amount !== undefined || shiftResult?.orders_total !== undefined || shiftResult?.expenses_total !== undefined) && (
+              <div className="flex flex-wrap items-center justify-around gap-2 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-[11px] mb-4">
+                <div className="flex items-center gap-1 font-semibold text-slate-600 dark:text-slate-300">
+                  <span className="text-slate-400">{t('start_amount_label')}:</span>
+                  <span className="font-bold font-mono text-slate-800 dark:text-white">
+                    {(shiftResult?.start_amount ?? 0).toFixed(2)}
+                  </span>
+                </div>
+                <span className="text-slate-400 font-bold">+</span>
+                <div className="flex items-center gap-1 font-semibold text-slate-600 dark:text-slate-300">
+                  <span className="text-slate-400">{t('orders_total_label')}:</span>
+                  <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                    {(shiftResult?.orders_total ?? 0).toFixed(2)}
+                  </span>
+                </div>
+                <span className="text-slate-400 font-bold">-</span>
+                <div className="flex items-center gap-1 font-semibold text-slate-600 dark:text-slate-300">
+                  <span className="text-slate-400">{t('expenses_total_label')}:</span>
+                  <span className="font-bold font-mono text-rose-600 dark:text-rose-400">
+                    {(shiftResult?.expenses_total ?? 0).toFixed(2)}
+                  </span>
+                </div>
+                <span className="text-slate-400 font-bold">=</span>
+                <div className="flex items-center gap-1 font-semibold text-slate-600 dark:text-slate-300">
+                  <span className="text-slate-400">{t('expected_system_amount')}:</span>
+                  <span className="font-bold font-mono text-primary">
+                    {expectedAmount.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* 3 Metric Cards Grid */}
             <div className="grid grid-cols-3 gap-2.5 mb-5">
               {/* Card 1: Expected */}

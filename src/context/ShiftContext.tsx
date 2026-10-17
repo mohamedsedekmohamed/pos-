@@ -24,7 +24,17 @@ interface ShiftContextType {
   activeDevice: CashierDevice | null;
   hasActiveShift: boolean;
   canStartNewShift: boolean;
-  startShift: (cashierId: number, device?: CashierDevice) => Promise<Shift>;
+  startShift: (
+    cashierIdOrParams: number | {
+      cashierId: number;
+      device?: CashierDevice;
+      startAmount?: number;
+      financialAccountId?: number;
+    },
+    device?: CashierDevice,
+    startAmount?: number,
+    financialAccountId?: number
+  ) => Promise<Shift>;
   endShift: (totalMony?: number, shouldLogout?: boolean) => Promise<Shift>;
   refetchShift: () => Promise<any>;
   isStartingShift: boolean;
@@ -124,10 +134,17 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // ── Start Shift Mutation ──
   const startShiftMutation = useMutation({
-    mutationFn: (params: { cashierId: number; device?: CashierDevice }) =>
+    mutationFn: (params: {
+      cashierId: number;
+      device?: CashierDevice;
+      startAmount?: number;
+      financialAccountId?: number;
+    }) =>
       cashierApi.startShift({
         cashier_id: params.cashierId,
         cashier_man_id: user?.id ?? null,
+        start_amount: params.startAmount,
+        financial_account_id: params.financialAccountId,
       }),
     onSuccess: (shift, variables) => {
       setActiveShift(shift);
@@ -165,9 +182,27 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     },
   });
 
-  const startShift = async (cashierId: number, device?: CashierDevice): Promise<Shift> => {
+  const startShift = async (
+    cashierIdOrParams: number | {
+      cashierId: number;
+      device?: CashierDevice;
+      startAmount?: number;
+      financialAccountId?: number;
+    },
+    device?: CashierDevice,
+    startAmount?: number,
+    financialAccountId?: number
+  ): Promise<Shift> => {
     setShiftError(null);
-    return await startShiftMutation.mutateAsync({ cashierId, device });
+    if (typeof cashierIdOrParams === 'object') {
+      return await startShiftMutation.mutateAsync(cashierIdOrParams);
+    }
+    return await startShiftMutation.mutateAsync({
+      cashierId: cashierIdOrParams,
+      device,
+      startAmount,
+      financialAccountId,
+    });
   };
 
   const endShift = async (totalMony: number = 0, shouldLogout: boolean = false): Promise<Shift> => {
