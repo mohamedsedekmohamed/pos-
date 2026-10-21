@@ -41,6 +41,10 @@ export const authApi = {
    * POST /api/auth/refresh-token
    */
   refreshToken: async (): Promise<{ token: string }> => {
+    const userGuard = typeof localStorage !== 'undefined' ? localStorage.getItem('pos_user_guard') : null;
+    if (userGuard === 'branch') {
+      throw new Error('Refresh token is not supported for branch role');
+    }
     const { data } = await api.post<{ data: { token: string } }>(
       '/api/auth/refresh-token'
     );

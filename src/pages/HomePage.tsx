@@ -11,6 +11,9 @@ import {
   FiZap,
   FiX,
   FiTruck,
+  FiMapPin,
+  FiLayers,
+  FiUser,
 } from 'react-icons/fi';
 import { FaWhatsapp, FaFacebookF, FaInstagram, FaPhone } from 'react-icons/fa6';
 import { useBusinessSetup } from '../hooks/useBusinessSetup';
@@ -111,15 +114,35 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-semibold text-neutral-400 bg-white/[0.03] border border-white/10 px-3 py-1.5 rounded-full">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>النظام متصل ويعمل</span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/25 text-xs font-bold text-primary hover:text-primary-light transition-all cursor-pointer"
+            >
+              <FiUser className="w-3.5 h-3.5" />
+              <span>دخول الكاشير</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/branch/login')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all cursor-pointer"
+            >
+              <FiMapPin className="w-3.5 h-3.5" />
+              <span>دخول الفرع</span>
+            </button>
+
+            <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-neutral-400 bg-white/[0.03] border border-white/10 px-3 py-1.5 rounded-full mr-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>النظام متصل</span>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 max-w-7xl mx-auto px-4 py-12 sm:py-16 flex flex-col items-center justify-center w-full">
+      <main className="relative z-10 flex-1 mx-auto px-4 py-12 sm:py-16 flex flex-col items-center justify-center w-full">
         {/* Business Showcase Card (Only shown if data exists, otherwise kept blank) */}
         {hasBusinessData && (
           <div className="w-full max-w-2xl mb-10 p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl relative overflow-hidden text-center animate-in fade-in duration-500">
@@ -212,7 +235,7 @@ const HomePage: React.FC = () => {
         )}
 
         {/* Title & Introduction */}
-        <div className="text-center max-w-2xl mb-12 animate-in fade-in zoom-in-95 duration-500">
+        <div className="text-center  mb-12 animate-in fade-in zoom-in-95 duration-500">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-bold text-neutral-300 mb-4 shadow-sm">
             <FiZap className="w-3.5 h-3.5 text-amber-400" />
             <span>منظومة متكاملة لنقاط البيع، خدمة الطاولات، والطلب أونلاين</span>
@@ -226,8 +249,8 @@ const HomePage: React.FC = () => {
           </p>
         </div>
 
-        {/* The Action Cards (3 Columns) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 w-full">
+        {/* The Action Cards (4 Columns) */}
+        <div className="flex flex-wrap  justify-center gap-10 sm:gap-6 w-full">
           {/* Card 1: Online Ordering & Delivery (Public User API) */}
           <div
             onClick={() => navigate('/order')}
@@ -341,18 +364,16 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Card 2: Table Route (Public) */}
-          <div
+          {/* <div
             onClick={() => {
               setTableCodeInput('');
               setIsTableCodeModalOpen(true);
             }}
             className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-emerald-500/50 p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-500/10 cursor-pointer overflow-hidden backdrop-blur-xl"
           >
-            {/* Top Glowing Ambient in Card */}
             <div className="absolute top-0 right-0 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-colors pointer-events-none" />
 
             <div>
-              {/* Header inside Card */}
               <div className="flex items-center justify-between mb-6">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-emerald-500/10">
                   <FiCoffee className="w-7 h-7" />
@@ -363,7 +384,6 @@ const HomePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Title & Description */}
               <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors">
                 بوابة طلبات الطاولة
               </h2>
@@ -371,7 +391,6 @@ const HomePage: React.FC = () => {
                 مسار مباشر ومخصص للزبائن عبر رمز الطاولة المحدد أو مسح QR لاستعراض القائمة وإنشاء الطلب.
               </p>
 
-              {/* Feature Highlights */}
               <div className="space-y-2.5 mb-8 text-xs font-medium text-neutral-300">
                 <div className="flex items-center gap-2.5">
                   <FiCheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -388,13 +407,80 @@ const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Button */}
             <div className="pt-4 border-t border-white/5 flex items-center justify-between">
               <span className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">
                 طلب الطاولة عبر الكود
               </span>
               <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-neutral-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 transition-all">
                 <FiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+              </div>
+            </div>
+          </div> */}
+
+          {/* Card 4: Branches Management & API Hub (الفروع) */}
+          <div
+            onClick={() => navigate('/branches')}
+            className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-purple-500/50 p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-purple-500/10 cursor-pointer overflow-hidden backdrop-blur-xl"
+          >
+            {/* Top Glowing Ambient in Card */}
+            <div className="absolute top-0 right-0 w-44 h-44 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-colors pointer-events-none" />
+
+            <div>
+              {/* Header inside Card */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-500/20 to-indigo-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-500/10">
+                  <FiMapPin className="w-7 h-7" />
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold">
+                  <FiLayers className="w-3.5 h-3.5" />
+                  <span>إدارة ونظام الفرع</span>
+                </div>
+              </div>
+
+              {/* Title & Description */}
+              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
+                منظومة وإدارة الفروع
+              </h2>
+              <p className="text-sm text-neutral-400 leading-relaxed mb-6">
+                إدارة الفروع، نقاط وأجهزة الكاشير، الصالات، المطابخ، والـ APIs المتكاملة لنظام الفرع.
+              </p>
+
+              {/* Feature Highlights */}
+              <div className="space-y-2.5 mb-8 text-xs font-medium text-neutral-300">
+                <div className="flex items-center gap-2.5">
+                  <FiCheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span>إدارة وإضافة الفروع والإحداثيات</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <FiCheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span>الصالات ونقاط الكاشير وتعيين المطابخ</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <FiCheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span>دليل واجهات الـ APIs المتكاملة</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div className="pt-4 border-t border-white/5 flex items-center justify-between gap-2">
+              <span className="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">
+                الدخول لمنظومة الفروع
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/branch/login');
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-black border border-emerald-500/30 text-xs font-bold transition-all cursor-pointer"
+                >
+                  دخول الفرع
+                </button>
+                <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-neutral-300 group-hover:bg-purple-500 group-hover:text-white group-hover:border-purple-500 transition-all">
+                  <FiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                </div>
               </div>
             </div>
           </div>

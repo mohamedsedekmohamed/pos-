@@ -18,6 +18,8 @@ import ShiftPage from './pages/ShiftPage';
 import UserProfilePage from './pages/profile/ProfilePage';
 import UserMenuPage from './pages/user/UserMenuPage';
 import OrderSuccessPage from './pages/user/OrderSuccessPage';
+import BranchesPage from './pages/branch/BranchesPage';
+import BranchLoginPage from './pages/branch/BranchLoginPage';
 import './App.css';
 
 function App() {
@@ -41,7 +43,19 @@ function App() {
                 <Route path="/table_code/:table_code" element={<TablePage />} />
                 <Route path="/table/profile" element={<UserProfilePage backTo="/table" />} />
                 <Route path="/table/:table_code/profile" element={<UserProfilePage />} />
+                
+                {/* 1. Cashier Login (تسجيل دخول الكاشير) */}
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/cashier/login" element={<LoginPage />} />
+                <Route path="/login/cashier" element={<LoginPage />} />
+                
+                {/* 2. Branch Login (تسجيل دخول الفرع) */}
+                <Route path="/branch/login" element={<BranchLoginPage />} />
+                <Route path="/branch-login" element={<BranchLoginPage />} />
+                <Route path="/login/branch" element={<BranchLoginPage />} />
+                
+                {/* Branches System (الفروع) */}
+                <Route path="/branches" element={<BranchesPage />} />
                 
                 {/* Protected Routes (Cashier Track) */}
                 <Route element={<PrivateRoute />}>
@@ -58,6 +72,7 @@ function App() {
                     <Route path="/dashboard" element={<DashboardLayout />}>
                       <Route index element={<DashboardHome />} />
                       <Route path="profile" element={<UserProfilePage />} />
+                      <Route path="branches" element={<BranchesPage />} />
                     </Route>
                   </Route>
                 </Route>

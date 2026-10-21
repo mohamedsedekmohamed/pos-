@@ -38,6 +38,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     enabled: hasToken,
     retry: false,
     staleTime: Infinity,
+    initialData: () => {
+      if (typeof localStorage !== 'undefined') {
+        const cached = localStorage.getItem('pos_user');
+        if (cached) {
+          try {
+            return JSON.parse(cached);
+          } catch {
+            return null;
+          }
+        }
+      }
+      return null;
+    },
   });
 
   const isAuthenticated = Boolean(user);
@@ -45,10 +58,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // ── Login Mutation ──
   const loginMutation = useMutation({
     mutationFn: authApi.login,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       setToken(data.token);
       queryClient.setQueryData(['auth', 'me'], data.user);
-      navigate('/dashboard/shift', { replace: true });
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('pos_user_guard', variables.guard || 'cashier_man');
+        localStorage.setItem('pos_user', JSON.stringify(data.user));
+      }
+      if (variables.guard === 'branch' || data.user?.role === 'branch') {
+        navigate('/branches', { replace: true });
+      } else {
+        navigate('/dashboard/shift', { replace: true });
+      }
     },
     onError: (error: any) => {
       setLoginError(error.response?.data?.message || 'فشل تسجيل الدخول...');
@@ -61,6 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     onSettled: () => {
       removeToken();
       localStorage.removeItem('pos_active_shift');
+      localStorage.removeItem('pos_user_guard');
+      localStorage.removeItem('pos_user');
       queryClient.clear();
       navigate('/login', { replace: true });
     },

@@ -21,6 +21,82 @@ export interface BranchPaginationParams {
   per_page?: number;
 }
 // ══════════════════════════════════════════════════════════════════════════════
+// 0. Admin Branches CRUD (/api/admin/branches)
+// ══════════════════════════════════════════════════════════════════════════════
+export interface BranchLocationItem {
+  lat: number;
+  lng: number;
+}
+
+export interface AdminBranch {
+  id: number;
+  name: LocalizedString;
+  user_name: string;
+  address: string;
+  location: BranchLocationItem[];
+  watts?: string | null;
+  facebook?: string | null;
+  status: boolean;
+  role: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AdminBranchSelectOption {
+  id: number;
+  name: LocalizedString;
+}
+
+export interface AdminBranchSelectOptionsResponse {
+  branches: AdminBranchSelectOption[];
+}
+
+export interface CreateBranchPayload {
+  name: LocalizedString;
+  user_name: string;
+  password?: string;
+  address: string;
+  location: BranchLocationItem[];
+  watts?: string;
+  facebook?: string;
+  status?: boolean;
+}
+
+export interface UpdateBranchPayload {
+  name?: LocalizedString;
+  user_name?: string;
+  password?: string;
+  address?: string;
+  location?: BranchLocationItem[];
+  watts?: string;
+  facebook?: string;
+  status?: boolean;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 1. Authentication (/api/auth/login with guard: branch)
+// ══════════════════════════════════════════════════════════════════════════════
+export interface BranchLoginPayload {
+  name: string;
+  password: string;
+  guard: 'branch' | string;
+}
+
+export interface BranchLoginData {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  guard: string;
+  user: {
+    id: number;
+    name: LocalizedString;
+    user_name: string;
+    address?: string;
+    role: string;
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // 2. Cashiers
 // ══════════════════════════════════════════════════════════════════════════════
 export interface BranchCashier {
@@ -637,3 +713,23 @@ export interface CreateWastePayload {
 export interface UpdateWastePayload {
   count: number;
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 19. Addons (/api/branch/addons)
+// ══════════════════════════════════════════════════════════════════════════════
+
+export interface BranchAddon {
+  id: number;
+  name: string;
+  price: number;
+  kitchen_id?: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface BranchAddonSelectOptions {
+  taxes?: { id: number; name: string }[];
+  discounts?: { id: number; name: string }[];
+  kitchens?: { id: number; name: string }[];
+}
+

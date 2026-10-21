@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { userApi } from '../services/userService';
-import { businessApi, BUSINESS_BASE_URL } from '../services/businessService';
+import { BUSINESS_BASE_URL } from '../services/businessService';
 import type { BusinessSetup } from '../types/business';
 import type { UserBusinessSetup } from '../types/user';
 
@@ -27,9 +27,7 @@ export const useBusinessSetup = (langOverride?: string) => {
     queryFn: async () => {
       // Primary: call GET /api/user/business-setup?lang=...
       const userSetup = await userApi.getBusinessSetup(currentLang);
-      if (userSetup) return userSetup;
-      // Fallback
-      return businessApi.getBusinessSetup();
+      return userSetup || null;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes fresh
     refetchOnWindowFocus: true, // Auto check status on focus to react quickly to business hours

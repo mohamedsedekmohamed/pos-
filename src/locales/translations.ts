@@ -33,6 +33,8 @@ export const translations = {
     language: 'اللغة',
     arabic: 'العربية',
     english: 'English',
+    branches: 'الفروع',
+    branches_management: 'إدارة الفروع',
 
     // ── Shift Page ──
     shift_portal: 'بوابة الورديات',
@@ -258,6 +260,8 @@ export const translations = {
     language: 'Language',
     arabic: 'العربية',
     english: 'English',
+    branches: 'Branches',
+    branches_management: 'Branches Management',
 
     // ── Shift Page ──
     shift_portal: 'Shift Portal',

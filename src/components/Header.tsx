@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiSun, FiMoon, FiLogOut, FiClock, FiShoppingBag, FiCoffee, FiTruck, FiGlobe } from 'react-icons/fi';
+import { FiSun, FiMoon, FiLogOut, FiClock, FiShoppingBag, FiCoffee, FiTruck, FiGlobe, FiMapPin } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useShift } from '../context/ShiftContext';
@@ -112,6 +112,16 @@ const Header: React.FC = () => {
           <span className="uppercase text-[11px]">{language === 'ar' ? 'EN' : 'عربي'}</span>
         </button>
 
+        {/* Branches Link (الفروع) */}
+        <Link
+          to="/branches"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/25 text-primary text-xs font-bold transition-all cursor-pointer shadow-sm"
+          title="إدارة الفروع وواجهات النظام"
+        >
+          <FiMapPin className="w-3.5 h-3.5" />
+          <span>الفروع</span>
+        </Link>
+
         {/* Shift Badge */}
         <Link
           to="/dashboard/shift"
@@ -149,25 +159,34 @@ const Header: React.FC = () => {
         </button>
 
         {/* User Info */}
-        {user && (
-          <Link
-            to="/dashboard/profile"
-            className="flex items-center gap-3 pr-2 border-r border-slate-200 dark:border-slate-700 hover:opacity-80 transition-opacity cursor-pointer"
-            title={t('profile')}
-          >
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-primary/25">
-              {user.name?.charAt(0)?.toUpperCase() || 'U'}
-            </div>
-            <div className="hidden sm:block text-right">
-              <p className="text-sm font-medium text-slate-900 dark:text-white leading-tight">
-                {user.name}
-              </p>
-              <p className="text-xs text-slate-400 dark:text-slate-500">
-                {t('cashier')}
-              </p>
-            </div>
-          </Link>
-        )}
+        {user && (() => {
+          const userNameDisplay =
+            typeof user.name === 'object' && user.name
+              ? (user.name[language as 'ar' | 'en'] || user.name.ar || user.name.en || user.user_name || '')
+              : String(user.name || user.user_name || '');
+          const userInitial = userNameDisplay ? userNameDisplay.charAt(0).toUpperCase() : (user.role === 'branch' ? 'B' : 'U');
+          const userRoleDisplay = user.role === 'branch' ? 'فرع (Branch)' : t('cashier');
+
+          return (
+            <Link
+              to="/dashboard/profile"
+              className="flex items-center gap-3 pr-2 border-r border-slate-200 dark:border-slate-700 hover:opacity-80 transition-opacity cursor-pointer"
+              title={t('profile')}
+            >
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-primary/25">
+                {userInitial}
+              </div>
+              <div className="hidden sm:block text-right">
+                <p className="text-sm font-medium text-slate-900 dark:text-white leading-tight">
+                  {userNameDisplay}
+                </p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">
+                  {userRoleDisplay}
+                </p>
+              </div>
+            </Link>
+          );
+        })()}
 
         {/* Logout */}
         <button

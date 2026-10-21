@@ -77,6 +77,35 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // NEVER attempt token refresh on auth endpoints (login, logout, refresh-token)
+    const isAuthEndpoint =
+      originalRequest.url?.includes('/api/auth/login') ||
+      originalRequest.url?.includes('/api/auth/logout') ||
+      originalRequest.url?.includes('/api/auth/refresh-token');
+
+    if (isAuthEndpoint) {
+      return Promise.reject(error);
+    }
+
+    // Branch accounts do not have /api/auth/refresh-token on the server
+    const userGuard = typeof localStorage !== 'undefined' ? localStorage.getItem('pos_user_guard') : null;
+    const isBranchEndpoint =
+      originalRequest.url?.includes('/api/branch') ||
+      originalRequest.url?.includes('/api/admin');
+    const isBranchUser = userGuard === 'branch' || isBranchEndpoint;
+    const currentToken = getToken();
+
+    // If branch user, branch endpoint, or no token present: immediately reject and do not call refresh-token
+    if (isBranchUser || !currentToken) {
+      removeToken();
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('pos_user');
+        localStorage.removeItem('pos_user_guard');
+      }
+      window.dispatchEvent(new CustomEvent('auth:logout'));
+      return Promise.reject(error);
+    }
+
     if (isRefreshing) {
       // Queue the request until refresh completes
       return new Promise((resolve, reject) => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBusinessSetup } from '../hooks/useBusinessSetup';
 import {
@@ -16,12 +16,14 @@ import {
   FiZap,
   FiLayers,
   FiArrowRight,
+  FiMapPin,
 } from 'react-icons/fi';
 
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { business, logoUrl } = useBusinessSetup();
+
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -34,11 +36,15 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login({ name, password, guard: 'cashier_man' });
+      // Cashier login strictly sends guard: 'cashier_man'
+      await login({ name: name.trim(), password, guard: 'cashier_man' });
       navigate('/dashboard/shift', { replace: true });
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };
-      setError(axiosError.response?.data?.message || 'فشل تسجيل الدخول. تحقق من صحة البيانات.');
+      setError(
+        axiosError.response?.data?.message ||
+          'فشل تسجيل الدخول للكاشير. يرجى التحقق من صحة البيانات والمحاولة مجدداً.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -60,6 +66,7 @@ const LoginPage: React.FC = () => {
           <span>العودة للرئيسية</span>
         </button>
       </div>
+
       {/* Dynamic Animated Ambient Background Orbs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Top-Left Orb */}
@@ -86,28 +93,21 @@ const LoginPage: React.FC = () => {
 
       {/* Floating Animated Retail & POS Icons (Ambient) */}
       <div className="absolute inset-0 pointer-events-none hidden md:block">
-        {/* Icon 1: Shopping Bag */}
         <div className="absolute top-[18%] right-[14%] p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md shadow-xl text-primary animate-float-gentle">
           <FiShoppingBag className="w-6 h-6" />
         </div>
-
-        {/* Icon 2: Credit Card */}
         <div
           className="absolute bottom-[22%] right-[16%] p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md shadow-xl text-indigo-400 animate-float-reverse"
           style={{ animationDelay: '1s' }}
         >
           <FiCreditCard className="w-6 h-6" />
         </div>
-
-        {/* Icon 3: Coffee */}
         <div
           className="absolute top-[24%] left-[14%] p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md shadow-xl text-amber-400 animate-float-reverse"
           style={{ animationDelay: '2s' }}
         >
           <FiCoffee className="w-6 h-6" />
         </div>
-
-        {/* Icon 4: Tag */}
         <div
           className="absolute bottom-[20%] left-[16%] p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md shadow-xl text-emerald-400 animate-float-gentle"
           style={{ animationDelay: '3s' }}
@@ -119,12 +119,9 @@ const LoginPage: React.FC = () => {
       {/* Login Container */}
       <div className="relative w-full max-w-md z-10">
         {/* Animated Brand Header */}
-        <div className="text-center mb-7">
+        <div className="text-center mb-6">
           <div className="relative inline-flex items-center justify-center mb-3 group">
-            {/* Animated Glow Halo */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-primary to-violet-600 blur-xl opacity-60 group-hover:opacity-100 transition-opacity animate-pulse-soft" />
-
-            {/* Icon Box / Logo */}
             <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#121216] to-[#1e1e24] border border-white/15 flex items-center justify-center shadow-2xl animate-float-gentle overflow-hidden p-2">
               {logoUrl ? (
                 <img
@@ -141,35 +138,34 @@ const LoginPage: React.FC = () => {
             </div>
           </div>
 
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/25 text-primary text-xs font-bold mb-2">
+            <FiUser className="w-3.5 h-3.5" />
+            <span>بوابة الكاشير • Cashier Portal</span>
+          </div>
+
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            {business?.name ? (
-              <span>{business.name}</span>
-            ) : (
-              <>
-                نظام نقطة البيع <span className="text-primary">POS</span>
-              </>
-            )}
+            تسجيل دخول الكاشير
           </h1>
-          <p className="text-sm text-neutral-400 mt-1">
-            سجّل دخولك للوصول إلى لوحة المبيعات
+          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
+            سجّل دخولك للوصول إلى لوحة المبيعات والورديات والصندوق
           </p>
         </div>
 
         {/* Glassmorphism Card */}
-        <div className="relative rounded-3xl bg-[#101014]/80 backdrop-blur-2xl border border-white/10 p-7 sm:p-8 shadow-2xl shadow-black/80">
+        <div className="relative rounded-3xl bg-[#101014]/85 backdrop-blur-2xl border border-white/10 p-7 sm:p-8 shadow-2xl shadow-black/80">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Error Message */}
             {error && (
-              <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium flex items-center gap-2 animate-in fade-in duration-300">
+              <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs sm:text-sm font-medium flex items-center gap-2 animate-in fade-in duration-300">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
-                {error}
+                <span>{error}</span>
               </div>
             )}
 
             {/* Username Field */}
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-neutral-300">
-                اسم المستخدم
+                اسم مستخدم الكاشير (Username)
               </label>
               <div className="relative group">
                 <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-primary transition-colors pointer-events-none">
@@ -179,9 +175,10 @@ const LoginPage: React.FC = () => {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="أدخل اسم المستخدم..."
+                  placeholder="أدخل اسم مستخدم الكاشير..."
                   required
-                  className="w-full pr-10 pl-4 py-3 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-neutral-500 text-sm focus:outline-none focus:border-primary focus:bg-white/[0.07] focus:ring-2 focus:ring-primary/20 transition-all"
+                  autoFocus
+                  className="w-full pr-10 pl-4 py-3.5 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-neutral-500 text-sm focus:outline-none focus:border-primary focus:bg-white/[0.07] focus:ring-2 focus:ring-primary/20 transition-all font-mono"
                 />
               </div>
             </div>
@@ -189,7 +186,7 @@ const LoginPage: React.FC = () => {
             {/* Password Field */}
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-neutral-300">
-                كلمة المرور
+                كلمة المرور (Password)
               </label>
               <div className="relative group">
                 <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-primary transition-colors pointer-events-none">
@@ -201,7 +198,7 @@ const LoginPage: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full pr-10 pl-11 py-3 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-neutral-500 text-sm focus:outline-none focus:border-primary focus:bg-white/[0.07] focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full pr-10 pl-11 py-3.5 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-neutral-500 text-sm focus:outline-none focus:border-primary focus:bg-white/[0.07] focus:ring-2 focus:ring-primary/20 transition-all"
                 />
                 <button
                   type="button"
@@ -229,14 +226,35 @@ const LoginPage: React.FC = () => {
               ) : (
                 <>
                   <FiLogIn className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-                  <span>تسجيل الدخول</span>
+                  <span>دخول حساب الكاشير</span>
                 </>
               )}
             </button>
           </form>
 
+          {/* Switcher: Link to Branch Login */}
+          <div className="mt-6 pt-5 border-t border-white/10">
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/5 border border-emerald-500/20 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                  <FiMapPin className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white">هل أنت مسؤول فرع؟</p>
+                  <p className="text-[11px] text-neutral-400">إدارة الفرع والـ APIs والعمليات</p>
+                </div>
+              </div>
+              <Link
+                to="/branch/login"
+                className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs shadow-md transition-all shrink-0 cursor-pointer"
+              >
+                دخول الفرع &larr;
+              </Link>
+            </div>
+          </div>
+
           {/* Quick System Badges */}
-          <div className="mt-6 pt-5 border-t border-white/5 grid grid-cols-3 gap-2 text-center text-[11px] text-neutral-400">
+          <div className="mt-5 grid grid-cols-3 gap-2 text-center text-[11px] text-neutral-400">
             <div className="flex items-center justify-center gap-1.5 py-1 px-2 rounded-lg bg-white/[0.02]">
               <FiZap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span>فوري وسريع</span>
@@ -253,8 +271,8 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-neutral-500 mt-6">
-          جميع الحقوق محفوظة &copy; {new Date().getFullYear()} POS System
+        <p className="text-center text-xs text-neutral-500 mt-6 font-mono">
+          Cashier Authenticated • guard: cashier_man
         </p>
       </div>
     </div>
