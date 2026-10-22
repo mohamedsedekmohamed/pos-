@@ -30,6 +30,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [deliveryId, setDeliveryId] = useState<number | ''>('');
   const [note, setNote] = useState('');
   const [hallTableId, setHallTableId] = useState<number | ''>(selectedTable?.id ?? '');
   const [tableName, setTableName] = useState<string>(selectedTable?.name ?? '');
@@ -40,6 +41,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     queryKey: ['cashier', 'financial-accounts', language],
     queryFn: () => cashierApi.getFinancialAccounts({ lang: language }),
     enabled: isOpen,
+  });
+
+  // Fetch delivery personnel when order is delivery
+  const { data: deliveries = [], isLoading: loadingDeliveries } = useQuery({
+    queryKey: ['cashier', 'deliveries'],
+    queryFn: cashierApi.getDeliveries,
+    enabled: isOpen && orderType === 'delivery',
   });
 
   // Combine API accounts, shift account, and guaranteed fallbacks so the select is NEVER empty
@@ -81,6 +89,22 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (orderType === 'delivery') {
+      if (!name.trim()) {
+        alert(language === 'ar' ? 'اسم العميل مطلوب لطلبات التوصيل' : 'Customer name is required for delivery orders');
+        return;
+      }
+      if (!phone.trim()) {
+        alert(language === 'ar' ? 'رقم هاتف العميل مطلوب لطلبات التوصيل' : 'Customer phone is required for delivery orders');
+        return;
+      }
+      if (!address.trim()) {
+        alert(language === 'ar' ? 'عنوان التوصيل مطلوب' : 'Delivery address is required');
+        return;
+      }
+    }
+
     const selectedAcc = availableAccounts.find((a) => a.id === Number(financialAccountId));
     const finalAccountId = selectedAcc
       ? selectedAcc.id
@@ -94,10 +118,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
       {
         module: orderType,
         financial_account_id: finalAccountId,
-        name: name || null,
-        phone: phone || null,
-        address: orderType === 'delivery' ? (address || null) : null,
-        note: note || null,
+        name: name.trim() || null,
+        phone: phone.trim() || null,
+        address: orderType === 'delivery' ? (address.trim() || null) : null,
+        delivery_id: orderType === 'delivery' && deliveryId !== '' ? Number(deliveryId) : undefined,
+        note: note.trim() || null,
         hall_table_id: orderType === 'dinein' ? finalTableId : null,
       },
       {
@@ -197,43 +222,86 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('customer_name')}</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                {t('customer_name')}
+                {orderType === 'delivery' && <span className="text-red-500 ms-1">*</span>}
+              </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 maxLength={255}
+                required={orderType === 'delivery'}
                 className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 transition-all dark:text-white"
-                placeholder={t('optional')}
+                placeholder={
+                  orderType === 'delivery'
+                    ? (language === 'ar' ? 'اسم العميل (مطلوب للتوصيل)' : 'Customer name (required)')
+                    : t('optional')
+                }
               />
             </div>
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('customer_phone')}</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                {t('customer_phone')}
+                {orderType === 'delivery' && <span className="text-red-500 ms-1">*</span>}
+              </label>
               <input
                 type="tel"
                 value={phone}
+              
                 onChange={(e) => setPhone(e.target.value)}
                 maxLength={50}
+                required={orderType === 'delivery'}
                 className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 transition-all dark:text-white"
-                placeholder={t('optional')}
+                placeholder={
+                  orderType === 'delivery'
+                    ? (language === 'ar' ? 'رقم الهاتف (مطلوب للتوصيل)' : 'Phone number (required)')
+                    : t('optional')
+                }
               />
             </div>
 
-            {/* Address (Only for delivery) */}
+            {/* Address & Driver (Only for delivery) */}
             {orderType === 'delivery' && (
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('delivery_address')}</label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 transition-all dark:text-white"
-                  placeholder={t('delivery_address_placeholder')}
-                  required
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('delivery_address')}</label>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 transition-all dark:text-white"
+                    placeholder={t('delivery_address_placeholder')}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-neutral-300 mb-1.5 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <FiTruck className="w-3.5 h-3.5 text-primary" />
+                      <span>{t('delivery_driver')}</span>
+                    </span>
+                    {loadingDeliveries && (
+                      <span className="text-[11px] text-slate-400 font-normal">{t('loading')}</span>
+                    )}
+                  </label>
+                  <select
+                    value={deliveryId}
+                    onChange={(e) => setDeliveryId(e.target.value ? Number(e.target.value) : '')}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                  >
+                    <option value="">{t('choose_delivery_driver')}</option>
+                    {deliveries.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} {d.phone ? `(${d.phone})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
             )}
 
             {/* Note */}

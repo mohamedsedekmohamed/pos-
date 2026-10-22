@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { FiTrash2, FiPlus, FiMinus, FiShoppingCart } from 'react-icons/fi';
 import type { ApiCartItem, ApiCartGrandTotals } from '../../types/cashier';
 
@@ -139,7 +139,7 @@ const Cart: React.FC<CartProps> = ({
                   </button>
                 </div>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-600">
-                  {(item.total_final_price || 0).toFixed(2)} ر.س
+                  {(item.total_final_price || 0).toFixed(2)} ج.م
                 </span>
               </div>
             </div>
@@ -153,17 +153,17 @@ const Cart: React.FC<CartProps> = ({
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between text-slate-500">
               <span>المجموع الفرعي</span>
-              <span>{subtotal.toFixed(2)} ر.س</span>
+              <span>{subtotal.toFixed(2)} ج.م</span>
             </div>
             <div className="flex justify-between text-slate-500">
-              <span>الضريبة (15%)</span>
-              <span>{taxAmount.toFixed(2)} ر.س</span>
+              <span>الضريبة</span>
+              <span>{taxAmount.toFixed(2)} ج.م</span>
             </div>
             <div className="h-px bg-slate-200 dark:bg-slate-700 my-1" />
             <div className="flex justify-between text-lg font-bold text-slate-900 dark:text-white">
               <span>الإجمالي</span>
               <span className="text-indigo-600 dark:text-indigo-600">
-                {total.toFixed(2)} ر.س
+                {total.toFixed(2)} ج.م
               </span>
             </div>
           </div>

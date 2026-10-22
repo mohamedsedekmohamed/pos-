@@ -47,6 +47,7 @@ export interface Product {
   final_price: number;
   discount: ProductDiscount | null;
   tax: ProductTax | null;
+  variations?: Variation[];
 }
 
 export interface VariationOption {
@@ -106,6 +107,260 @@ export interface HallTable {
 export interface CashierDevice {
   id: number;
   name: string;
+}
+
+// ── Delivery ──
+export interface Delivery {
+  id: number;
+  name: string;
+  phone?: string;
+  id_images?: any[] | null;
+  branch_id?: number;
+  branch?: Branch | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Branch ──
+export interface Branch {
+  id: number;
+  name?: any[] | null;
+  user_name?: string;
+  address?: string;
+  location?: any[] | null;
+  watts?: string;
+  facebook?: string;
+  status?: boolean;
+  role?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Payment Method ──
+export interface PaymentMethod {
+  id: number;
+  name?: any[] | null;
+  description?: any[] | null;
+  icon?: string;
+  status?: boolean;
+  is_cash?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Financial Account (Detailed) ──
+export interface FinancialAccountDetail extends CashierFinancialAccount {
+  balance?: number;
+  status?: boolean;
+  is_cash?: boolean;
+  branch_id?: number;
+  branch?: Branch | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Shift Detail ──
+export interface ShiftDetail {
+  id: number;
+  name?: any[] | null;
+  start_time?: string;
+  end_time?: string;
+  branch_id?: number;
+  is_tomorrow?: boolean;
+  branch?: Branch | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Cashier Detail ──
+export interface CashierDetail {
+  id: number;
+  name?: string;
+  cashier_man_id?: number;
+  branch_id?: number;
+  branch?: Branch | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Cashier Man Detail ──
+export interface CashierManDetail {
+  id: number;
+  name?: string;
+  cashier_id?: number;
+  branch_id?: number;
+  shift_id?: number;
+  role?: string;
+  branch?: Branch | null;
+  cashier?: CashierDetail | null;
+  shift?: ShiftDetail | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Hall Table Detail ──
+export interface HallTableDetail {
+  id: number;
+  code?: string;
+  name?: string;
+  branch_id?: number;
+  branch?: { id: number; name?: any[] | null } | null;
+  hall_id?: number;
+  hall?: { id: number; name?: any[] | null } | null;
+  status?: boolean;
+  qr?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Tax / Discount Detail ──
+export interface TaxDiscountDetail {
+  id: number;
+  name?: any[] | null;
+  type?: string;
+  amount?: number;
+  status?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Category Detail ──
+export interface CategoryDetail {
+  id: number;
+  name?: any[] | null;
+  image?: string;
+  description?: any[] | null;
+  category_id?: number;
+  type?: string;
+  status?: boolean;
+  parent?: any;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Variation Detail (for product) ──
+export interface VariationDetail {
+  id: number;
+  name?: any[] | null;
+  status?: boolean;
+  required?: boolean;
+  product_id?: number;
+  options?: VariationOptionDetail[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface VariationOptionDetail {
+  id: number;
+  name?: any[] | null;
+  price?: number;
+  status?: boolean;
+  product_id?: number;
+  variation_id?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Product Detail (Full) ──
+export interface ProductDetailFull {
+  id: number;
+  name?: any[] | null;
+  description?: any[] | null;
+  image?: string;
+  price?: number;
+  tax_id?: number;
+  tax?: TaxDiscountDetail | null;
+  discount_id?: number;
+  discount?: TaxDiscountDetail | null;
+  category_id?: number;
+  category?: CategoryDetail | null;
+  sub_category_id?: number;
+  sub_category?: CategoryDetail | null;
+  variations?: VariationDetail[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Order Product Variation ──
+export interface OrderProductVariation {
+  id: number;
+  order_product_id?: number;
+  variation_id?: number;
+  name?: any | null;
+  name_translations?: any[] | null;
+  variation?: {
+    id: number;
+    name?: any[] | null;
+    status?: boolean;
+    required?: boolean;
+    product_id?: number;
+    created_at?: string;
+    updated_at?: string;
+  } | null;
+  options?: OrderProductVariationOption[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface OrderProductVariationOption {
+  id: number;
+  order_p_variation_id?: number;
+  option_id?: number;
+  name?: any | null;
+  name_translations?: any[] | null;
+  price?: number;
+  option?: {
+    id: number;
+    name?: any[] | null;
+    price?: string;
+    status?: boolean;
+    product_id?: number;
+    variation_id?: number;
+    created_at?: string;
+    updated_at?: string;
+  } | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Order Product Addon ──
+export interface OrderProductAddon {
+  id: number;
+  addon_id?: number;
+  order_product_id?: number;
+  name?: any | null;
+  name_translations?: any[] | null;
+  price?: number;
+  addon?: {
+    id: number;
+    name?: any[] | null;
+    image?: string;
+    price?: string;
+    tax_id?: number;
+    discount_id?: number;
+    kitchen_id?: number;
+    created_at?: string;
+    updated_at?: string;
+  } | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ── Order Product (Full Detail) ──
+export interface OrderProductFull {
+  id: number;
+  order_id?: number;
+  product_id?: number;
+  quantity?: number;
+  name?: any | null;
+  name_translations?: any[] | null;
+  price?: number;
+  note?: string | null;
+  product?: ProductDetailFull | null;
+  variations?: OrderProductVariation[];
+  addons?: OrderProductAddon[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 // ── Shift ──
@@ -318,19 +573,31 @@ export interface CheckoutPayload {
   phone?: string | null;
   name?: string | null;
   note?: string | null;
+  delivery_id?: number | null;
 }
 
 export interface Order {
   id: number;
+  order_number?: string;
   shift_id: number;
   shift_name: string;
   cashier_id: number;
   cashier_man_id: number;
   hall_table_id: number | null;
   financial_account_id?: number | null;
-  financial_account?: CashierFinancialAccount | null;
+  financial_id?: number | null;
+  financial_account?: FinancialAccountDetail | null;
+  payment_method_id?: number | null;
+  payment_method?: PaymentMethod | null;
+  delivery_id?: number | null;
+  delivery?: Delivery | null;
+  branch_id?: number;
   module: string;
+  status: string;
+  paid: boolean;
   address: string | null;
+  lat?: number | null;
+  lng?: number | null;
   note: string | null;
   phone: string | null;
   name: string | null;
@@ -339,9 +606,14 @@ export interface Order {
   total_tax: number;
   total_discount: number;
   final_price: number;
+  branch?: Branch | null;
+  shift?: ShiftDetail | null;
+  cashier?: CashierDetail | null;
+  cashier_man?: CashierManDetail | null;
+  hall_table?: HallTableDetail | null;
+  products?: OrderProductFull[];
   created_at: string;
   updated_at: string;
-  products?: OrderProduct[];
 }
 
 export interface OrderProduct {
@@ -357,7 +629,61 @@ export interface OrderProduct {
 
 export interface OrderListResponse {
   data: Order[];
-  // Pagination fields can be added here
+  links?: {
+    first: string | null;
+    last: string | null;
+    prev: string | null;
+    next: string | null;
+  };
+  meta?: {
+    current_page: number;
+    from: number | null;
+    last_page: number;
+    per_page: number;
+    to: number | null;
+    total: number;
+  };
+}
+
+export interface UpdateOrderStatusPayload {
+  status: 'done' | 'out_of_delivery' | 'delivered' | 'return' | 'failed_to_delivered' | 'pickup';
+  delivery_id?: number;
+}
+
+export interface UnpaidDeliveryOrdersParams {
+  delivery_id?: number;
+  page?: number;
+  per_page?: number;
+  search?: string;
+}
+
+export interface OrdersQueryParams {
+  page?: number;
+  per_page?: number;
+  shift_id?: number;
+  module?: 'takeaway' | 'dinein' | 'delivery' | string;
+  status?: string;
+  paid?: boolean;
+  search?: string;
+  date_from?: string;
+  date_to?: string;
+}
+
+export interface SettlePaymentPayload {
+  order_ids: number[];
+}
+
+export interface SettlePaymentResponse {
+  status: boolean;
+  message: string;
+  data: {
+    settled_count: number;
+    settled_order_ids: number[];
+    total_amount_collected: number;
+    cashier_id: number;
+    cashier_man_id: number;
+    shift_id: number;
+  };
 }
 
 export interface SelectedVariation {

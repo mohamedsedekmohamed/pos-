@@ -31,8 +31,8 @@ export const UserCategoryNav: React.FC<UserCategoryNavProps> = ({
 
   // Filter subcategories for the selected parent category
   const activeSubCategories = selectedCategoryId
-    ? subCategories.filter((sub) => sub.category_id === selectedCategoryId)
-    : [];
+    ? subCategories.filter((sub) => !sub.category_id || Number(sub.category_id) === Number(selectedCategoryId))
+    : subCategories;
 
   return (
     <div className="w-full space-y-2 sm:space-y-3">

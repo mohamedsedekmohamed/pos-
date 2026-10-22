@@ -17,6 +17,7 @@ import {
   FiCreditCard,
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { useReactToPrint } from 'react-to-print';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useShift } from '../../context/ShiftContext';
@@ -190,9 +191,35 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
   const isSurplus = !isExact && deficitValue < -0.01;
   const diffMagnitude = Math.abs(deficitValue);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = useReactToPrint({
+    contentRef: printAreaRef,
+    documentTitle: `Shift-Summary-${currentShift?.id || 'report'}`,
+    pageStyle: `
+      @page {
+        size: auto;
+        margin: 5mm;
+      }
+      @media print {
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        body {
+          margin: 0 !important;
+          padding: 5mm !important;
+          background: #ffffff !important;
+          color: #000000 !important;
+        }
+        #printable-shift-summary {
+          width: 100% !important;
+          max-width: 100% !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+      }
+    `,
+  });
 
   const handleLogout = () => {
     handleClose();
@@ -712,7 +739,7 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
                 {/* Print Button */}
                 <button
                   type="button"
-                  onClick={handlePrint}
+                  onClick={() => handlePrint()}
                   className="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] text-slate-800 dark:text-white font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer border border-slate-200 dark:border-white/5"
                 >
                   <FiPrinter className="w-4 h-4 text-primary" />

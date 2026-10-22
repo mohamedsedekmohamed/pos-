@@ -79,11 +79,12 @@ const ProductModal: React.FC<ProductModalProps> = ({
   const addonsTotal = selectedAddons.reduce((sum, a) => sum + a.price * a.quantity, 0);
   const unitPrice = product.final_price + variationsTotal + addonsTotal;
   const totalPrice = unitPrice * quantity;
+  const activeVariations = detail?.variations || product?.variations || [];
 
   // Check if required variations are selected
-  const missingRequired = detail?.variations
-    ?.filter((v) => v.required && v.status)
-    .filter((v) => !selectedVariations.find((sv) => sv.variationId === v.id)) || [];
+  const missingRequired = activeVariations
+    .filter((v) => v.required && v.status)
+    .filter((v) => !selectedVariations.find((sv) => sv.variationId === v.id));
 
   const canAdd = missingRequired.length === 0;
 
@@ -160,7 +161,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {isLoading ? (
+          {isLoading && !product.variations ? (
             <div className="space-y-4">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="h-20 bg-slate-100 dark:bg-slate-700 rounded-xl animate-pulse" />
@@ -169,7 +170,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
           ) : (
             <>
               {/* Variations */}
-              {detail?.variations?.filter((v) => v.status).map((variation) => (
+              {activeVariations.filter((v) => v.status).map((variation) => (
                 <div key={variation.id}>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
                     {renderLocalized(variation.name)}

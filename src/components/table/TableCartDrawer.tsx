@@ -142,7 +142,7 @@ export const TableCartDrawer: React.FC = () => {
                     <div className="min-w-0">
                       <h4 className="font-bold text-sm text-white truncate">{item.name}</h4>
                       <span className="text-xs font-black text-primary">
-                        {item.totalPrice.toFixed(2)} ر.س
+                        {item.totalPrice.toFixed(2)} ج.م
                       </span>
                     </div>
                   </div>
@@ -179,7 +179,7 @@ export const TableCartDrawer: React.FC = () => {
                         key={a.addonId}
                         className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20"
                       >
-                        + {a.name} ({a.price.toFixed(2)} ر.س)
+                        + {a.name} ({a.price.toFixed(2)} ج.م)
                       </span>
                     ))}
                   </div>
@@ -227,11 +227,11 @@ export const TableCartDrawer: React.FC = () => {
             <div className="space-y-1 text-xs">
               <div className="flex justify-between text-neutral-400">
                 <span>إجمالي الأصناف ({totalItems})</span>
-                <span>{subtotal.toFixed(2)} ر.س</span>
+                <span>{subtotal.toFixed(2)} ج.م</span>
               </div>
               <div className="flex justify-between font-black text-base text-white pt-2 border-t border-white/5">
                 <span>المجموع الكلي</span>
-                <span className="text-primary text-lg">{totalPrice.toFixed(2)} ر.س</span>
+                <span className="text-primary text-lg">{totalPrice.toFixed(2)} ج.م</span>
               </div>
             </div>
 

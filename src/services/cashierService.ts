@@ -21,6 +21,12 @@ import type {
   CheckoutPayload,
   Order,
   OrderListResponse,
+  OrdersQueryParams,
+  Delivery,
+  UpdateOrderStatusPayload,
+  UnpaidDeliveryOrdersParams,
+  SettlePaymentPayload,
+  SettlePaymentResponse,
 } from '../types/cashier';
 
 export const cashierApi = {
@@ -209,13 +215,36 @@ export const cashierApi = {
     return data;
   },
 
-  getOrders: async (params?: Record<string, any>): Promise<OrderListResponse> => {
+  getOrders: async (params?: OrdersQueryParams): Promise<OrderListResponse> => {
     const { data } = await api.get('/api/cashier/orders', { params });
     return data;
   },
 
   getOrderDetail: async (orderId: number): Promise<{ status: boolean; data: Order }> => {
     const { data } = await api.get(`/api/cashier/orders/${orderId}`);
+    return data;
+  },
+
+  updateOrderStatus: async (orderId: number, payload: UpdateOrderStatusPayload): Promise<{ status: boolean; message: string; data: Order }> => {
+    const { data } = await api.put(`/api/cashier/orders/${orderId}/status`, payload);
+    return data;
+  },
+
+  // ── Deliveries ──
+  getDeliveries: async (): Promise<Delivery[]> => {
+    const { data } = await api.get<{ status: boolean; data: Delivery[] }>(
+      '/api/cashier/deliveries/select'
+    );
+    return data.data;
+  },
+
+  getUnpaidDeliveryOrders: async (params?: UnpaidDeliveryOrdersParams): Promise<OrderListResponse> => {
+    const { data } = await api.get<OrderListResponse>('/api/cashier/delivery-orders/unpaid', { params });
+    return data;
+  },
+
+  settleDeliveryPayment: async (payload: SettlePaymentPayload): Promise<SettlePaymentResponse> => {
+    const { data } = await api.post<SettlePaymentResponse>('/api/cashier/delivery-orders/settle-payment', payload);
     return data;
   },
 };

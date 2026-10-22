@@ -208,7 +208,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <span className="text-xl sm:text-2xl font-black text-primary">
                 {(product.final_price || product.price || 0).toFixed(2)}
               </span>
-              <span className="text-xs text-neutral-400">ر.س السعر الأساسي</span>
+              <span className="text-xs text-neutral-400">ج.م السعر الأساسي</span>
             </div>
           </div>
 
@@ -282,7 +282,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
                           {optPrice > 0 ? (
                             <span className="text-xs font-bold text-primary">
-                              +{optPrice.toFixed(2)} ر.س
+                              +{optPrice.toFixed(2)} ج.م
                             </span>
                           ) : (
                             <span className="text-[11px] text-neutral-500">مشول بالسعر</span>
@@ -335,7 +335,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                       </div>
 
                       <span className="text-xs font-bold text-primary shrink-0">
-                        +{addonPrice.toFixed(2)} ر.س
+                        +{addonPrice.toFixed(2)} ج.م
                       </span>
                     </div>
                   );
@@ -393,7 +393,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <FiShoppingBag className="w-4 h-4" />
               <span>إضافة إلى السلة</span>
             </div>
-            <span className="font-black text-base">{grandTotal.toFixed(2)} ر.س</span>
+            <span className="font-black text-base">{grandTotal.toFixed(2)} ج.م</span>
           </button>
         </div>
       </div>

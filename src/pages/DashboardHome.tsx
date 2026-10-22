@@ -1,11 +1,13 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { FiSearch, FiX } from 'react-icons/fi';
 import { cashierApi } from '../services/cashierService';
 import { useAuth } from '../context/AuthContext';
 import { useShift } from '../context/ShiftContext';
 import { useOrderType } from '../context/OrderTypeContext';
 import CategoryTabs from '../components/cashier/CategoryTabs';
+import SubCategoryChips from '../components/cashier/SubCategoryChips';
 import ProductGrid from '../components/cashier/ProductGrid';
 import Cart from '../components/cashier/Cart';
 import ProductModal from '../components/cashier/ProductModal';
@@ -14,8 +16,10 @@ import ReceiptModal, { type ReceiptOrderData } from '../components/cashier/Recei
 import ShiftBar from '../components/cashier/ShiftBar';
 import StockRecipeConfirmModal from '../components/cashier/StockRecipeConfirmModal';
 import TablePickerModal from '../components/cashier/TablePickerModal';
+import OrdersManagementModal from '../components/cashier/OrdersManagementModal';
 import { useLanguage } from '../context/LanguageContext';
-import type { Product, AddToCartPayload, UpdateCartPayload, CheckoutPayload } from '../types/cashier';
+import { useToast } from '../context/ToastContext';
+import type { Product, AddToCartPayload, UpdateCartPayload, CheckoutPayload, Order } from '../types/cashier';
 
 const DashboardHome: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +27,7 @@ const DashboardHome: React.FC = () => {
   const { hasActiveShift, isCheckingShift, isEndModalOpen, activeShift, activeDevice } = useShift();
   const { orderType, orderTypeLabel, selectedTable, isTablePickerOpen, setIsTablePickerOpen } = useOrderType();
   const { t, renderLocalized, language } = useLanguage();
+  const { showError, showSuccess } = useToast();
 
   // Redirect to shift page if no active shift is found (and modal is not open)
   useEffect(() => {
@@ -40,9 +45,12 @@ const DashboardHome: React.FC = () => {
 
   // ── State ──
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
   const [receiptOrderData, setReceiptOrderData] = useState<ReceiptOrderData | null>(null);
   const [stockConfirm, setStockConfirm] = useState<{
     isOpen: boolean;
@@ -58,28 +66,62 @@ const DashboardHome: React.FC = () => {
   } | null>(null);
   const queryClient = useQueryClient();
 
+  // Reset subcategory when parent category changes
+  const handleSelectCategory = useCallback((id: number | null) => {
+    setSelectedCategoryId(id);
+    setSelectedSubCategoryId(null);
+  }, []);
+
   // ── API Queries ──
+  // 1. Parent Categories
   const { data: categories = [], isLoading: loadingCategories } = useQuery({
     queryKey: ['parent-categories', language],
     queryFn: () => cashierApi.getParentCategories({ lang: language }),
   });
 
-  // Filter only product-type categories for display
-  const productCategories = categories.filter((c) => c.type === 'product');
+  // Display active parent categories (if some explicitly marked 'product', prioritize; otherwise show all active)
+  const displayCategories = categories.some((c) => c.type === 'product')
+    ? categories.filter((c) => c.type === 'product' && c.status !== false)
+    : categories.filter((c) => c.status !== false);
 
-  const { data: products = [], isLoading: loadingProducts } = useQuery({
-    queryKey: ['products', selectedCategoryId, language],
+  // 2. Sub Categories (Filterable by parent category_id)
+  const { data: subCategories = [], isLoading: loadingSubCategories } = useQuery({
+    queryKey: ['sub-categories', selectedCategoryId, language],
     queryFn: () =>
-      cashierApi.getProducts({
-        ...(selectedCategoryId ? { category_id: selectedCategoryId } : {}),
+      cashierApi.getSubCategories({
+        category_id: selectedCategoryId || undefined,
         lang: language,
       }),
   });
 
+  // 3. Products (Filterable by category_id & sub_category_id)
+  const { data: products = [], isLoading: loadingProducts } = useQuery({
+    queryKey: ['products', selectedCategoryId, selectedSubCategoryId, language],
+    queryFn: () =>
+      cashierApi.getProducts({
+        ...(selectedCategoryId ? { category_id: selectedCategoryId } : {}),
+        ...(selectedSubCategoryId ? { sub_category_id: selectedSubCategoryId } : {}),
+        lang: language,
+      }),
+  });
+
+  // 4. Addons
   const { data: addons = [] } = useQuery({
     queryKey: ['addons', language],
     queryFn: () => cashierApi.getAddons({ lang: language }),
   });
+
+  // ── Client-side Filter for Search ──
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery.trim()) return products;
+    const q = searchQuery.toLowerCase().trim();
+    return products.filter((p) => {
+      const pName = (renderLocalized(p.name) || (typeof p.name === 'string' ? p.name : '')).toLowerCase();
+      const pDesc = (renderLocalized(p.description) || (typeof p.description === 'string' ? p.description : '')).toLowerCase();
+      const pPrice = String(p.final_price || p.price);
+      return pName.includes(q) || pDesc.includes(q) || pPrice.includes(q);
+    });
+  }, [products, searchQuery, renderLocalized]);
 
   // ── Cart API ──
   const { data: cartData, isLoading: loadingCart } = useQuery({
@@ -195,7 +237,19 @@ const DashboardHome: React.FC = () => {
       }
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       queryClient.invalidateQueries({ queryKey: ['tables'] });
+      queryClient.invalidateQueries({ queryKey: ['cashier', 'orders'] });
       setIsCheckoutModalOpen(false);
+      showSuccess(t('checkout_success', 'تم إنشاء الطلب بنجاح'));
+    },
+    onError: (err: any) => {
+      const serverMessage =
+        err?.response?.data?.message ||
+        (err?.response?.data?.errors
+          ? Object.values(err.response.data.errors).flat().join('\n')
+          : null) ||
+        err?.message ||
+        t('error_occurred');
+      showError(serverMessage);
     },
   });
 
@@ -303,10 +357,71 @@ const DashboardHome: React.FC = () => {
     [cartItems, grandTotals, checkoutMutation, orderType, selectedTable]
   );
 
+  // Reprint past receipt from Orders modal
+  const handleReprintReceipt = useCallback(
+    (order: Order) => {
+      const mappedReceipt: ReceiptOrderData = {
+        orderId: order.id,
+        orderType: (order.module as any) || 'takeaway',
+        orderTypeLabel:
+          order.module === 'dinein'
+            ? t('dinein')
+            : order.module === 'delivery'
+            ? t('delivery')
+            : t('takeaway'),
+        customerName: order.name,
+        customerPhone: order.phone,
+        deliveryAddress: order.address,
+        tableName: order.hall_table?.name || (order.hall_table_id ? `Table #${order.hall_table_id}` : null),
+        orderNote: order.note,
+        items: (order.products || []).map((p: any) => ({
+          id: p.id,
+          module: order.module,
+          quantity: p.quantity || 1,
+          notes: p.note,
+          product: {
+            id: p.product_id || p.id,
+            name: p.name || p.product?.name,
+            price: p.price || 0,
+            final_price: p.price || 0,
+            image: p.product?.image || '',
+            description: '',
+            discount_val: 0,
+            tax_val: 0,
+          },
+          variations: [],
+          addons: [],
+          total_price: (p.price || 0) * (p.quantity || 1),
+          total_discount: 0,
+          total_tax: 0,
+          total_final_price: (p.price || 0) * (p.quantity || 1),
+          cashier_id: order.cashier_id,
+          cashier_man_id: order.cashier_man_id,
+          branch_id: order.branch_id || 1,
+        })),
+        totals: {
+          grand_total_price: Number(order.total) || 0,
+          grand_total_discount: Number(order.total_discount) || 0,
+          grand_total_tax: Number(order.total_tax) || 0,
+          grand_final_price: Number(order.final_price) || Number(order.total) || 0,
+        },
+        createdAt: order.created_at || new Date().toISOString(),
+        cashierName: order.cashier_man?.name || user?.name,
+        deviceName: order.cashier?.name || activeDevice?.name,
+        branchName: order.branch?.name
+          ? renderLocalized(order.branch.name) || (typeof order.branch.name === 'string' ? order.branch.name : undefined)
+          : undefined,
+      };
+      setReceiptOrderData(mappedReceipt);
+      setIsReceiptModalOpen(true);
+    },
+    [t, renderLocalized, user?.name, activeDevice?.name]
+  );
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
-      {/* Shift Bar */}
-      <ShiftBar />
+      {/* Shift Bar with Orders Button */}
+      <ShiftBar onOpenOrdersModal={() => setIsOrdersModalOpen(true)} />
 
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row flex-1 min-h-0">
@@ -314,19 +429,52 @@ const DashboardHome: React.FC = () => {
         <div className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-900 overflow-hidden">
           {/* Category Tabs */}
           <CategoryTabs
-            categories={productCategories}
+            categories={displayCategories}
             selectedId={selectedCategoryId}
-            onSelect={setSelectedCategoryId}
+            onSelect={handleSelectCategory}
             isLoading={loadingCategories}
           />
 
-          {/* Divider */}
-          <div className="h-px bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
+          {/* Subcategory Chips (when parent category is selected) */}
+          {selectedCategoryId && (
+            <SubCategoryChips
+              subCategories={subCategories}
+              selectedId={selectedSubCategoryId}
+              onSelect={setSelectedSubCategoryId}
+              isLoading={loadingSubCategories}
+            />
+          )}
+
+          {/* Search Bar & Item Count Bar */}
+          <div className="px-4 py-2 bg-white dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-sm sm:max-w-md">
+              <FiSearch className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t('search_products')}
+                className="w-full ps-9 pe-9 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-xs font-semibold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute end-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                >
+                  <FiX className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+              {filteredProducts.length} {t('items_count')}
+            </div>
+          </div>
 
           {/* Product Grid */}
           <div className="flex-1 overflow-y-auto">
             <ProductGrid
-              products={products}
+              products={filteredProducts}
               isLoading={loadingProducts}
               onProductClick={setSelectedProduct}
             />
@@ -384,6 +532,13 @@ const DashboardHome: React.FC = () => {
       <TablePickerModal
         isOpen={isTablePickerOpen}
         onClose={() => setIsTablePickerOpen(false)}
+      />
+
+      {/* Orders & Delivery Management Modal */}
+      <OrdersManagementModal
+        isOpen={isOrdersModalOpen}
+        onClose={() => setIsOrdersModalOpen(false)}
+        onReprintReceipt={handleReprintReceipt}
       />
     </div>
   );

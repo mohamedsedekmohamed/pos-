@@ -133,14 +133,15 @@ html {
   }
 
   #pos-receipt-print {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 80mm !important;
-    max-width: 80mm !important;
-    min-width: 80mm !important;
-    margin: 0 !important;
-    padding: 5mm !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 4mm !important;
+    margin-bottom: 4mm !important;
+    padding: 4mm 3mm !important;
+    width: 76mm !important;
+    max-width: 96% !important;
+    min-height: auto !important;
+    height: auto !important;
     background: white !important;
     color: black !important;
     box-shadow: none !important;
@@ -148,10 +149,11 @@ html {
     border-radius: 0 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    box-sizing: border-box !important;
   }
 
   @page {
-    size: 80mm auto;
+    size: auto;
     margin: 0mm;
   }
 }

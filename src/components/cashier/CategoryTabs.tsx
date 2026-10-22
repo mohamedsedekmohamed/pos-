@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Category } from '../../types/cashier';
 import { useLanguage } from '../../context/LanguageContext';
+import { formatImageUrl } from '../../hooks/useBusinessSetup';
 
 interface CategoryTabsProps {
   categories: Category[];
@@ -58,7 +59,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
           >
             {cat.image && (
               <img
-                src={cat.image}
+                src={formatImageUrl(cat.image) || cat.image}
                 alt={localizedCatName}
                 className="w-6 h-6 rounded-md object-cover"
                 onError={(e) => {

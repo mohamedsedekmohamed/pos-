@@ -28,7 +28,7 @@ export const FloatingCartBar: React.FC = () => {
               سلة الطلبات
             </span>
             <span className="text-base sm:text-lg font-black tracking-tight text-white">
-              {totalPrice.toFixed(2)} ر.س
+              {totalPrice.toFixed(2)} ج.م
             </span>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSquare, FiMonitor, FiClock, FiAlertCircle, FiSettings, FiMinusCircle } from 'react-icons/fi';
+import { FiSquare, FiMonitor, FiClock, FiAlertCircle, FiSettings, FiMinusCircle, FiShoppingBag } from 'react-icons/fi';
 import { useShift } from '../../context/ShiftContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { EndShiftModal } from './EndShiftModal';
@@ -9,9 +9,10 @@ import { ExpenseModal } from './ExpenseModal';
 interface ShiftBarProps {
   currentShift?: any;
   onShiftChange?: (shift: any) => void;
+  onOpenOrdersModal?: () => void;
 }
 
-const ShiftBar: React.FC<ShiftBarProps> = () => {
+const ShiftBar: React.FC<ShiftBarProps> = ({ onOpenOrdersModal }) => {
   const navigate = useNavigate();
   const { language, t } = useLanguage();
   const {
@@ -117,6 +118,19 @@ const ShiftBar: React.FC<ShiftBarProps> = () => {
               <FiSettings className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{t('manage_shift')}</span>
             </button>
+
+            {/* Shift Orders & Deliveries Button */}
+            {onOpenOrdersModal && (
+              <button
+                type="button"
+                onClick={onOpenOrdersModal}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-800 dark:text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-colors cursor-pointer"
+                title={t('shift_orders')}
+              >
+                <FiShoppingBag className="w-3.5 h-3.5" />
+                <span>{t('shift_orders')}</span>
+              </button>
+            )}
 
             {/* Record Expense Button */}
             <button

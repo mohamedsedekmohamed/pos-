@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import QRCode from 'qrcode';
 import { FiPrinter, FiPlusCircle, FiX, FiCheckCircle, FiShoppingBag, FiCoffee, FiTruck } from 'react-icons/fi';
+import { useReactToPrint } from 'react-to-print';
 import { useLanguage } from '../../context/LanguageContext';
 import type { ApiCartItem, ApiCartGrandTotals } from '../../types/cashier';
 
@@ -32,6 +33,54 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const receiptRef = useRef<HTMLDivElement>(null);
 
+  const handlePrint = useReactToPrint({
+    contentRef: receiptRef,
+    documentTitle: `Receipt-${orderData?.orderId || 'NEW'}`,
+    pageStyle: `
+      @page {
+        size: auto;
+        margin: 0mm;
+      }
+      @media print {
+        * {
+          box-sizing: border-box !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-height: 100% !important;
+          background: #ffffff !important;
+          color: #000000 !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: flex-start !important;
+          font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+        }
+        #pos-receipt-print {
+          width: 76mm !important;
+          max-width: 96% !important;
+          min-height: auto !important;
+          height: auto !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          margin-top: 4mm !important;
+          margin-bottom: 4mm !important;
+          padding: 4mm 3mm !important;
+          box-shadow: none !important;
+          border: none !important;
+          border-top: none !important;
+          border-radius: 0 !important;
+          background: #ffffff !important;
+          box-sizing: border-box !important;
+        }
+      }
+    `,
+  });
+
   useEffect(() => {
     if (!orderData) return;
 
@@ -40,8 +89,8 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
       `Tax ID: 300987654300003`,
       `Order: #${orderData.orderId || 'NEW'}`,
       `Date: ${orderData.createdAt}`,
-      `Total: ${Number(orderData.totals?.grand_final_price || 0).toFixed(2)} SAR`,
-      `VAT (15%): ${Number(orderData.totals?.grand_total_tax || 0).toFixed(2)} SAR`,
+      `Total: ${Number(orderData.totals?.grand_final_price || 0).toFixed(2)} ${t('currency')}`,
+      `VAT: ${Number(orderData.totals?.grand_total_tax || 0).toFixed(2)} ${t('currency')}`,
     ].join('\n');
 
     QRCode.toDataURL(qrPayload, {
@@ -57,10 +106,6 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
   }, [orderData]);
 
   if (!isOpen || !orderData) return null;
-
-  const handlePrint = () => {
-    window.print();
-  };
 
   const formattedDate = orderData.createdAt
     ? new Date(orderData.createdAt).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
@@ -105,13 +150,13 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
         </div>
 
         {/* Modal Body: Receipt Paper Preview */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex justify-center bg-slate-950/40">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex justify-center items-center bg-slate-950/40 min-h-[480px]">
           
           {/* ══════════ REAL THERMAL RECEIPT SLIP ══════════ */}
           <div
             id="pos-receipt-print"
             ref={receiptRef}
-            className="w-full max-w-[360px] bg-white text-black p-5 shadow-2xl rounded-sm font-sans text-xs leading-relaxed border-t-8 border-dashed border-slate-300"
+            className="w-full max-w-[360px] bg-white text-black p-5 shadow-2xl rounded-sm font-sans text-xs leading-relaxed border-t-8 border-dashed border-slate-300 my-auto"
             style={{ minHeight: '450px' }}
           >
             {/* Header: Store & Tax Info */}
@@ -272,7 +317,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
               <div className="flex justify-between items-center text-gray-700">
                 <span>{t('subtotal')}</span>
                 <span className="font-mono">
-                  {Number(orderData.totals?.grand_total_price || 0).toFixed(2)} SAR
+                  {Number(orderData.totals?.grand_total_price || 0).toFixed(2)} {t('currency')}
                 </span>
               </div>
 
@@ -280,7 +325,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
                 <div className="flex justify-between items-center text-emerald-600 font-semibold">
                   <span>{t('discount')}</span>
                   <span className="font-mono">
-                    -{Number(orderData.totals?.grand_total_discount).toFixed(2)} SAR
+                    -{Number(orderData.totals?.grand_total_discount).toFixed(2)} {t('currency')}
                   </span>
                 </div>
               )}
@@ -288,14 +333,14 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
               <div className="flex justify-between items-center text-gray-700">
                 <span>{t('tax_15')}</span>
                 <span className="font-mono">
-                  {Number(orderData.totals?.grand_total_tax || 0).toFixed(2)} SAR
+                  {Number(orderData.totals?.grand_total_tax || 0).toFixed(2)} {t('currency')}
                 </span>
               </div>
 
               <div className="flex justify-between items-center pt-1.5 border-t border-gray-300 text-sm font-black text-black">
                 <span>{t('total')}</span>
                 <span className="font-mono text-base font-extrabold text-black">
-                  {Number(orderData.totals?.grand_final_price || 0).toFixed(2)} SAR
+                  {Number(orderData.totals?.grand_final_price || 0).toFixed(2)} {t('currency')}
                 </span>
               </div>
             </div>
@@ -337,7 +382,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
         <div className="no-print p-4 bg-slate-800/80 border-t border-slate-700/60 flex flex-col sm:flex-row gap-3">
           <button
             type="button"
-            onClick={handlePrint}
+            onClick={() => handlePrint()}
             className="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <FiPrinter className="w-5 h-5" />
