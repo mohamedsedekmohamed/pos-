@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import { getToken, setToken, removeToken } from '../lib/axios';
 import { authApi } from '../services/authService';
+import { getLoginRedirectPath, saveLastLoginPath } from '../utils/authNavigation';
 import type { User, LoginCredentials } from '../types';
 
 interface AuthContextType {
@@ -66,8 +67,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('pos_user', JSON.stringify(data.user));
       }
       if (variables.guard === 'branch' || data.user?.role === 'branch') {
+        saveLastLoginPath('/branch/login');
         navigate('/branches', { replace: true });
       } else {
+        saveLastLoginPath('/login');
         navigate('/dashboard/shift', { replace: true });
       }
     },
@@ -80,12 +83,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logoutMutation = useMutation({
     mutationFn: authApi.logout,
     onSettled: () => {
+      const targetLogin = getLoginRedirectPath();
       removeToken();
       localStorage.removeItem('pos_active_shift');
       localStorage.removeItem('pos_user_guard');
       localStorage.removeItem('pos_user');
       queryClient.clear();
-      navigate('/login', { replace: true });
+      navigate(targetLogin, { replace: true });
     },
   });
 
@@ -100,10 +104,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // ── Listen for forced logout from interceptor ──
   useEffect(() => {
-    const handleForcedLogout = () => {
+    const handleForcedLogout = (e?: Event) => {
+      const customEvent = e as CustomEvent<{ targetPath?: string }>;
+      const targetLogin = customEvent?.detail?.targetPath || getLoginRedirectPath();
       removeToken();
       queryClient.clear();
-      navigate('/login', { replace: true });
+      navigate(targetLogin, { replace: true });
     };
 
     window.addEventListener('auth:logout', handleForcedLogout);

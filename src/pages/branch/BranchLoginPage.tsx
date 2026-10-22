@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useBusinessSetup } from '../../hooks/useBusinessSetup';
+import { saveLastLoginPath } from '../../utils/authNavigation';
 import {
   FiMapPin,
   FiLock,
@@ -10,7 +11,6 @@ import {
   FiEyeOff,
   FiLayers,
   FiArrowRight,
-  FiUser,
 } from 'react-icons/fi';
 
 export const BranchLoginPage: React.FC = () => {
@@ -24,12 +24,17 @@ export const BranchLoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    saveLastLoginPath('/branch/login');
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
+      saveLastLoginPath('/branch/login');
       // Branch login strictly sends guard: 'branch'
       await login({ name: name.trim(), password, guard: 'branch' });
       navigate('/branches', { replace: true });
@@ -191,20 +196,6 @@ export const BranchLoginPage: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Switch to Cashier Login */}
-          <div className="mt-6 pt-5 border-t border-white/10 text-center">
-            <p className="text-xs text-neutral-400 mb-2">
-              هل أنت موظف كاشير وتريد فتح الوردية ونقطة البيع؟
-            </p>
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary-light hover:underline transition-colors cursor-pointer"
-            >
-              <FiUser className="w-3.5 h-3.5" />
-              <span>الانتقال لتسجيل دخول الكاشير (Cashier Login) &larr;</span>
-            </Link>
-          </div>
         </div>
 
         {/* Footer */}

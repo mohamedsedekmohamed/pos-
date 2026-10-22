@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBusinessSetup } from '../hooks/useBusinessSetup';
+import { saveLastLoginPath } from '../utils/authNavigation';
 import {
   FiUser,
   FiLock,
@@ -16,7 +17,6 @@ import {
   FiZap,
   FiLayers,
   FiArrowRight,
-  FiMapPin,
 } from 'react-icons/fi';
 
 const LoginPage: React.FC = () => {
@@ -30,12 +30,17 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    saveLastLoginPath('/login');
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
+      saveLastLoginPath('/login');
       // Cashier login strictly sends guard: 'cashier_man'
       await login({ name: name.trim(), password, guard: 'cashier_man' });
       navigate('/dashboard/shift', { replace: true });
@@ -231,27 +236,6 @@ const LoginPage: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Switcher: Link to Branch Login */}
-          <div className="mt-6 pt-5 border-t border-white/10">
-            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/5 border border-emerald-500/20 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                  <FiMapPin className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-white">هل أنت مسؤول فرع؟</p>
-                  <p className="text-[11px] text-neutral-400">إدارة الفرع والـ APIs والعمليات</p>
-                </div>
-              </div>
-              <Link
-                to="/branch/login"
-                className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs shadow-md transition-all shrink-0 cursor-pointer"
-              >
-                دخول الفرع &larr;
-              </Link>
-            </div>
-          </div>
 
           {/* Quick System Badges */}
           <div className="mt-5 grid grid-cols-3 gap-2 text-center text-[11px] text-neutral-400">

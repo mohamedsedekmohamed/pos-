@@ -92,17 +92,23 @@ api.interceptors.response.use(
     const isBranchEndpoint =
       originalRequest.url?.includes('/api/branch') ||
       originalRequest.url?.includes('/api/admin');
-    const isBranchUser = userGuard === 'branch' || isBranchEndpoint;
+    const isBranchUser =
+      userGuard === 'branch' ||
+      isBranchEndpoint ||
+      (typeof window !== 'undefined' && (window.location.pathname.startsWith('/branch') || window.location.pathname.includes('/branches'))) ||
+      (typeof localStorage !== 'undefined' && localStorage.getItem('pos_last_login_path') === '/branch/login');
+    const targetPath = isBranchUser ? '/branch/login' : '/login';
     const currentToken = getToken();
 
     // If branch user, branch endpoint, or no token present: immediately reject and do not call refresh-token
     if (isBranchUser || !currentToken) {
       removeToken();
       if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('pos_last_login_path', targetPath);
         localStorage.removeItem('pos_user');
         localStorage.removeItem('pos_user_guard');
       }
-      window.dispatchEvent(new CustomEvent('auth:logout'));
+      window.dispatchEvent(new CustomEvent('auth:logout', { detail: { targetPath } }));
       return Promise.reject(error);
     }
 
@@ -141,8 +147,11 @@ api.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError as AxiosError, null);
       removeToken();
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('pos_last_login_path', targetPath);
+      }
       // Dispatch logout event for AuthContext to handle
-      window.dispatchEvent(new CustomEvent('auth:logout'));
+      window.dispatchEvent(new CustomEvent('auth:logout', { detail: { targetPath } }));
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

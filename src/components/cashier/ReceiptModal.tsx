@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import { FiPrinter, FiPlusCircle, FiX, FiCheckCircle, FiShoppingBag, FiCoffee, FiTruck } from 'react-icons/fi';
 import { useReactToPrint } from 'react-to-print';
 import { useLanguage } from '../../context/LanguageContext';
+import { useBusinessSetup } from '../../hooks/useBusinessSetup';
 import type { ApiCartItem, ApiCartGrandTotals } from '../../types/cashier';
 
 export interface ReceiptOrderData {
@@ -30,12 +31,15 @@ interface ReceiptModalProps {
 
 const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData }) => {
   const { language, dir, t, renderLocalized } = useLanguage();
+  const { business, logoUrl } = useBusinessSetup();
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const receiptRef = useRef<HTMLDivElement>(null);
 
+  const storeName = business?.name || (language === 'ar' ? 'V60 COFFEE' : 'V60 COFFEE');
+
   const handlePrint = useReactToPrint({
     contentRef: receiptRef,
-    documentTitle: `Receipt-${orderData?.orderId || 'NEW'}`,
+    documentTitle: `${storeName}-Receipt-${orderData?.orderId || 'NEW'}`,
     pageStyle: `
       @page {
         size: auto;
@@ -85,8 +89,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
     if (!orderData) return;
 
     const qrPayload = [
-      `Store: Mazoom Restaurant`,
-      `Tax ID: 300987654300003`,
+      `Store: ${storeName}`,
       `Order: #${orderData.orderId || 'NEW'}`,
       `Date: ${orderData.createdAt}`,
       `Total: ${Number(orderData.totals?.grand_final_price || 0).toFixed(2)} ${t('currency')}`,
@@ -103,7 +106,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
     })
       .then((url) => setQrCodeUrl(url))
       .catch((err) => console.error('Error generating receipt QR code:', err));
-  }, [orderData]);
+  }, [orderData, storeName, t]);
 
   if (!isOpen || !orderData) return null;
 
@@ -161,15 +164,29 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
           >
             {/* Header: Store & Tax Info */}
             <div className="text-center pb-3 border-b-2 border-dashed border-gray-400 space-y-1">
+              {logoUrl && (
+                <div className="flex justify-center mb-1.5">
+                  <img
+                    src={logoUrl}
+                    alt={storeName}
+                    className="w-12 h-12 object-contain rounded-xl"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
               <h1 className="text-lg font-black tracking-wider text-black uppercase">
-                {language === 'ar' ? 'مطاعم مازوم' : 'MAZOOM RESTAURANT'}
+                {storeName}
               </h1>
               <p className="text-[10px] font-semibold text-gray-700">
                 {t('tax_invoice')}
               </p>
-              <p className="text-[10px] text-gray-600">
-                {t('tax_number')}: <span className="font-mono font-bold">300987654300003</span>
-              </p>
+              {business?.phone && (
+                <p className="text-[10px] text-gray-600 font-mono">
+                  {business.phone}
+                </p>
+              )}
               <p className="text-[10px] text-gray-600">
                 {t('branch_label')}: {orderData.branchName || t('main_branch')}
               </p>
@@ -371,7 +388,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
               
               <div className="space-y-0.5 text-[9.5px] text-gray-600">
                 <p className="font-bold text-gray-800">{t('thank_you_visit')}</p>
-                <p className="text-[8.5px] text-gray-400">Mazoom Cloud POS System</p>
+                <p className="text-[8.5px] text-gray-400">{storeName} POS System</p>
               </div>
             </div>
 
