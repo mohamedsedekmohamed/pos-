@@ -177,7 +177,7 @@ export const BranchOperationsView: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-base font-bold text-slate-900 dark:text-white">
-              نقاط الكاشير النشطة في الفرع (/api/branch/cashiers)
+              نقاط الكاشير النشطة في الفرع
             </h4>
             <button
               type="button"
@@ -219,7 +219,7 @@ export const BranchOperationsView: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-base font-bold text-slate-900 dark:text-white">
-              صالات الفرع ومناطق الجلوس (/api/branch/halls)
+              صالات الفرع ومناطق الجلوس
             </h4>
             <button
               type="button"
@@ -264,7 +264,7 @@ export const BranchOperationsView: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-base font-bold text-slate-900 dark:text-white">
-              مطابخ الفرع وشاشات التحضير KDS (/api/branch/kitchens)
+              مطابخ الفرع وشاشات التحضير KDS
             </h4>
             <button
               type="button"
@@ -309,7 +309,7 @@ export const BranchOperationsView: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-base font-bold text-slate-900 dark:text-white">
-              الخزن والحسابات المالية (/api/branch/financial-accounts)
+              الخزن والحسابات المالية
             </h4>
             <button
               type="button"
@@ -354,7 +354,7 @@ export const BranchOperationsView: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-base font-bold text-slate-900 dark:text-white">
-              طيارو التوصيل المسجلون بالفرع (/api/branch/deliveries)
+              طيارو التوصيل المسجلون بالفرع
             </h4>
             <button
               type="button"
@@ -396,7 +396,7 @@ export const BranchOperationsView: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-base font-bold text-slate-900 dark:text-white">
-              ورديات وشيفتات العمل للفرع (/api/branch/shifts)
+              ورديات وشيفتات العمل للفرع
             </h4>
             <button
               type="button"

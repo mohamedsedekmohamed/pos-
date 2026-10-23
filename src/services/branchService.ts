@@ -4,11 +4,6 @@ import type {
   BranchApiResponse,
   BranchPaginatedResponse,
   BranchPaginationParams,
-  // ── Admin Branches (Section 0) ──
-  AdminBranch,
-  AdminBranchSelectOptionsResponse,
-  CreateBranchPayload,
-  UpdateBranchPayload,
   // ── Addons (Section 19) ──
   BranchAddon,
   BranchAddonSelectOptions,
@@ -116,97 +111,6 @@ function buildFormData(payload: Record<string, any>): FormData {
 // ══════════════════════════════════════════════════════════════════════════════
 
 export const branchApi = {
-  // ══════════════════════════════════════════════════════════════════════════
-  // 0. Admin Branches CRUD (/api/admin/branches)
-  // ══════════════════════════════════════════════════════════════════════════
-  branches: {
-    selectOptions: async (): Promise<AdminBranchSelectOptionsResponse> => {
-      const { data } = await api.get<BranchApiResponse<AdminBranchSelectOptionsResponse>>(
-        '/api/admin/branches/select-options'
-      );
-      return data.data;
-    },
-
-    list: async (params?: BranchPaginationParams): Promise<BranchPaginatedResponse<AdminBranch>> => {
-      const { data } = await api.get<BranchPaginatedResponse<AdminBranch>>(
-        '/api/admin/branches',
-        { params }
-      );
-      return data;
-    },
-
-    create: async (payload: CreateBranchPayload): Promise<AdminBranch> => {
-      const { data } = await api.post<BranchApiResponse<AdminBranch>>(
-        '/api/admin/branches',
-        payload
-      );
-      return data.data;
-    },
-
-    show: async (id: number): Promise<AdminBranch> => {
-      const { data } = await api.get<BranchApiResponse<AdminBranch>>(
-        `/api/admin/branches/${id}`
-      );
-      return data.data;
-    },
-
-    update: async (id: number, payload: UpdateBranchPayload): Promise<AdminBranch> => {
-      const { data } = await api.put<BranchApiResponse<AdminBranch>>(
-        `/api/admin/branches/${id}`,
-        payload
-      );
-      return data.data;
-    },
-
-    delete: async (id: number): Promise<void> => {
-      await api.delete(`/api/admin/branches/${id}`);
-    },
-  },
-
-  adminBranches: {
-    selectOptions: async (): Promise<AdminBranchSelectOptionsResponse> => {
-      const { data } = await api.get<BranchApiResponse<AdminBranchSelectOptionsResponse>>(
-        '/api/admin/branches/select-options'
-      );
-      return data.data;
-    },
-
-    list: async (params?: BranchPaginationParams): Promise<BranchPaginatedResponse<AdminBranch>> => {
-      const { data } = await api.get<BranchPaginatedResponse<AdminBranch>>(
-        '/api/admin/branches',
-        { params }
-      );
-      return data;
-    },
-
-    create: async (payload: CreateBranchPayload): Promise<AdminBranch> => {
-      const { data } = await api.post<BranchApiResponse<AdminBranch>>(
-        '/api/admin/branches',
-        payload
-      );
-      return data.data;
-    },
-
-    show: async (id: number): Promise<AdminBranch> => {
-      const { data } = await api.get<BranchApiResponse<AdminBranch>>(
-        `/api/admin/branches/${id}`
-      );
-      return data.data;
-    },
-
-    update: async (id: number, payload: UpdateBranchPayload): Promise<AdminBranch> => {
-      const { data } = await api.put<BranchApiResponse<AdminBranch>>(
-        `/api/admin/branches/${id}`,
-        payload
-      );
-      return data.data;
-    },
-
-    delete: async (id: number): Promise<void> => {
-      await api.delete(`/api/admin/branches/${id}`);
-    },
-  },
-
   // ══════════════════════════════════════════════════════════════════════════
   // 2. Cashiers
   // ══════════════════════════════════════════════════════════════════════════
@@ -1046,6 +950,4 @@ export const branchApi = {
     },
   },
 };
-
-export const adminBranchApi = branchApi.adminBranches;
 

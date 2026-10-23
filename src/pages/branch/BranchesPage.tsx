@@ -12,32 +12,70 @@ import {
   FiArrowRight,
   FiLayers,
   FiBarChart2,
-  FiCode,
   FiHome,
   FiLogIn,
   FiLogOut,
 } from 'react-icons/fi';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { branchApi } from '../../services/branchService';
+
 import { BranchCard } from '../../components/branch/BranchCard';
 import { BranchFormModal } from '../../components/branch/BranchFormModal';
 import { BranchDetailsModal } from '../../components/branch/BranchDetailsModal';
 import { BranchDeleteModal } from '../../components/branch/BranchDeleteModal';
-import { BranchApiDocsView } from '../../components/branch/BranchApiDocsView';
 import { BranchOperationsView } from '../../components/branch/BranchOperationsView';
 import { BranchDashboardView } from '../../components/branch/BranchDashboardView';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import type { AdminBranch, CreateBranchPayload, UpdateBranchPayload } from '../../types/branch';
 
+const initialDemoBranches: AdminBranch[] = [
+  {
+    id: 1,
+    name: { ar: 'فرع المعادي الرئيسي', en: 'Maadi Main Branch' },
+    user_name: 'branch_maadi',
+    address: 'شارع النصر، المعادي، القاهرة',
+    location: [{ lat: 29.9602, lng: 31.2569 }],
+    watts: '+201000000001',
+    facebook: 'https://facebook.com/branch-maadi',
+    status: true,
+    role: 'branch',
+    created_at: '2026-10-12T01:58:00+03:00',
+    updated_at: '2026-10-12T01:58:00+03:00',
+  },
+  {
+    id: 2,
+    name: { ar: 'فرع التجمع الخامس', en: 'Tagamoa 5th Settlement' },
+    user_name: 'branch_tagamoa',
+    address: 'شارع التسعين الشمالي، التجمع الخامس',
+    location: [{ lat: 30.0298, lng: 31.4721 }],
+    watts: '+201012345678',
+    facebook: 'https://facebook.com/branch-tagamoa',
+    status: true,
+    role: 'branch',
+    created_at: '2026-10-15T02:00:00+03:00',
+    updated_at: '2026-10-15T02:00:00+03:00',
+  },
+  {
+    id: 3,
+    name: { ar: 'فرع الشيخ زايد', en: 'Sheikh Zayed Branch' },
+    user_name: 'branch_zayed',
+    address: 'وصلة دهشور، الشيخ زايد، الجيزة',
+    location: [{ lat: 30.0524, lng: 30.9856 }],
+    watts: '+201099887766',
+    facebook: 'https://facebook.com/branch-zayed',
+    status: false,
+    role: 'branch',
+    created_at: '2026-10-18T10:00:00+03:00',
+    updated_at: '2026-10-18T10:00:00+03:00',
+  },
+];
+
 export const BranchesPage: React.FC = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { showToast } = useToast();
   const { user, isAuthenticated, logout } = useAuth();
 
   // Active top-level page tab
-  const [activePageTab, setActivePageTab] = useState<'crud' | 'dashboard' | 'operations' | 'docs'>(
+  const [activePageTab, setActivePageTab] = useState<'crud' | 'dashboard' | 'operations'>(
     'crud'
   );
 
@@ -56,64 +94,20 @@ export const BranchesPage: React.FC = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [branchToDelete, setBranchToDelete] = useState<AdminBranch | null>(null);
 
-  // ── Queries ──
-  const {
-    data: branchesResponse,
-    isLoading,
-    refetch,
-    isRefetching,
-  } = useQuery({
-    queryKey: ['admin-branches-list'],
-    queryFn: () => branchApi.branches.list({ per_page: 100 }),
-  });
+  // Branches list state
+  const [displayBranches, setDisplayBranches] = useState<AdminBranch[]>(initialDemoBranches);
+  const [isLoading] = useState(false);
+  const [isRefetching, setIsRefetching] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const branches: AdminBranch[] = branchesResponse?.data || [];
-
-  // Fallback demo branches if backend empty or during preview
-  const displayBranches: AdminBranch[] = useMemo(() => {
-    if (branches && branches.length > 0) return branches;
-    return [
-      {
-        id: 1,
-        name: { ar: 'فرع المعادي الرئيسي', en: 'Maadi Main Branch' },
-        user_name: 'branch_maadi',
-        address: 'شارع النصر، المعادي، القاهرة',
-        location: [{ lat: 29.9602, lng: 31.2569 }],
-        watts: '+201000000001',
-        facebook: 'https://facebook.com/branch-maadi',
-        status: true,
-        role: 'branch',
-        created_at: '2026-10-12T01:58:00+03:00',
-        updated_at: '2026-10-12T01:58:00+03:00',
-      },
-      {
-        id: 2,
-        name: { ar: 'فرع التجمع الخامس', en: 'Tagamoa 5th Settlement' },
-        user_name: 'branch_tagamoa',
-        address: 'شارع التسعين الشمالي، التجمع الخامس',
-        location: [{ lat: 30.0298, lng: 31.4721 }],
-        watts: '+201012345678',
-        facebook: 'https://facebook.com/branch-tagamoa',
-        status: true,
-        role: 'branch',
-        created_at: '2026-10-15T02:00:00+03:00',
-        updated_at: '2026-10-15T02:00:00+03:00',
-      },
-      {
-        id: 3,
-        name: { ar: 'فرع الشيخ زايد', en: 'Sheikh Zayed Branch' },
-        user_name: 'branch_zayed',
-        address: 'وصلة دهشور، الشيخ زايد، الجيزة',
-        location: [{ lat: 30.0524, lng: 30.9856 }],
-        watts: '+201099887766',
-        facebook: 'https://facebook.com/branch-zayed',
-        status: false,
-        role: 'branch',
-        created_at: '2026-10-18T10:00:00+03:00',
-        updated_at: '2026-10-18T10:00:00+03:00',
-      },
-    ];
-  }, [branches]);
+  const refetch = () => {
+    setIsRefetching(true);
+    setTimeout(() => {
+      setIsRefetching(false);
+      showToast('تم تحديث قائمة الفروع', 'info');
+    }, 400);
+  };
 
   // ── Filtered Branches ──
   const filteredBranches = useMemo(() => {
@@ -147,56 +141,59 @@ export const BranchesPage: React.FC = () => {
   const activeCount = displayBranches.filter((b) => b.status).length;
   const inactiveCount = totalCount - activeCount;
 
-  // ── Mutations ──
-  const createMutation = useMutation({
-    mutationFn: (payload: CreateBranchPayload) => branchApi.branches.create(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-branches-list'] });
-      showToast('تمت إضافة الفرع الجديد بنجاح', 'success');
-      setIsFormOpen(false);
-    },
-    onError: (err: any) => {
-      showToast(err.response?.data?.message || 'فشل إضافة الفرع', 'error');
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: UpdateBranchPayload }) =>
-      branchApi.branches.update(id, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-branches-list'] });
-      showToast('تم تعديل بيانات الفرع بنجاح', 'success');
-      setIsFormOpen(false);
-      setBranchToEdit(null);
-    },
-    onError: (err: any) => {
-      showToast(err.response?.data?.message || 'فشل تعديل بيانات الفرع', 'error');
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => branchApi.branches.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-branches-list'] });
-      showToast('تم حذف الفرع بنجاح', 'success');
-      setIsDeleteOpen(false);
-      setBranchToDelete(null);
-    },
-    onError: (err: any) => {
-      showToast(err.response?.data?.message || 'فشل حذف الفرع', 'error');
-    },
-  });
-
   const handleFormSubmit = async (payload: CreateBranchPayload | UpdateBranchPayload) => {
-    if (branchToEdit) {
-      await updateMutation.mutateAsync({ id: branchToEdit.id, payload });
-    } else {
-      await createMutation.mutateAsync(payload as CreateBranchPayload);
+    setIsSubmitting(true);
+    try {
+      if (branchToEdit) {
+        setDisplayBranches((prev) =>
+          prev.map((b) =>
+            b.id === branchToEdit.id
+              ? ({
+                  ...b,
+                  ...payload,
+                  updated_at: new Date().toISOString(),
+                } as AdminBranch)
+              : b
+          )
+        );
+        showToast('تم تعديل بيانات الفرع بنجاح', 'success');
+        setIsFormOpen(false);
+        setBranchToEdit(null);
+      } else {
+        const createPayload = payload as CreateBranchPayload;
+        const newId = displayBranches.length > 0 ? Math.max(...displayBranches.map((b) => b.id)) + 1 : 1;
+        const newBranch: AdminBranch = {
+          id: newId,
+          name: createPayload.name,
+          user_name: createPayload.user_name,
+          address: createPayload.address,
+          location: createPayload.location,
+          watts: createPayload.watts,
+          facebook: createPayload.facebook,
+          status: createPayload.status ?? true,
+          role: 'branch',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        setDisplayBranches((prev) => [newBranch, ...prev]);
+        showToast('تمت إضافة الفرع الجديد بنجاح', 'success');
+        setIsFormOpen(false);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDeleteConfirm = async (branch: AdminBranch) => {
-    await deleteMutation.mutateAsync(branch.id);
+    setIsDeleting(true);
+    try {
+      setDisplayBranches((prev) => prev.filter((b) => b.id !== branch.id));
+      showToast('تم حذف الفرع بنجاح', 'success');
+      setIsDeleteOpen(false);
+      setBranchToDelete(null);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -221,7 +218,7 @@ export const BranchesPage: React.FC = () => {
               </h1>
             </div>
             <p className="text-[11px] text-slate-400 dark:text-neutral-400">
-              إدارة الفروع ومسارات واجهات برمجة التطبيقات (/api/admin/branches)
+              إدارة خدمات الفرع والعمليات التشغيلية
             </p>
           </div>
         </div>
@@ -291,7 +288,7 @@ export const BranchesPage: React.FC = () => {
               }`}
             >
               <FiMapPin className="w-4 h-4" />
-              <span>إدارة الفروع (Admin Branches)</span>
+              <span>الفروع (Branches)</span>
               <span className="px-2 py-0.5 rounded-full text-xs bg-white/20">{totalCount}</span>
             </button>
 
@@ -319,22 +316,6 @@ export const BranchesPage: React.FC = () => {
             >
               <FiLayers className="w-4 h-4" />
               <span>خدمات الفرع (Operations Hub)</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActivePageTab('docs')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-                activePageTab === 'docs'
-                  ? 'bg-primary text-white shadow-lg shadow-primary/25 scale-[1.02]'
-                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.05]'
-              }`}
-            >
-              <FiCode className="w-4 h-4" />
-              <span>دليل واجهات الـ APIs (Docs)</span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-mono">
-                20 APIs
-              </span>
             </button>
           </div>
         </div>
@@ -624,9 +605,6 @@ export const BranchesPage: React.FC = () => {
 
         {/* Tab 3: Branch Operations Hub */}
         {activePageTab === 'operations' && <BranchOperationsView />}
-
-        {/* Tab 4: API Documentation & Explorer */}
-        {activePageTab === 'docs' && <BranchApiDocsView />}
       </div>
 
       {/* Modals */}
@@ -638,7 +616,7 @@ export const BranchesPage: React.FC = () => {
         }}
         branchToEdit={branchToEdit}
         onSubmit={handleFormSubmit}
-        isLoading={createMutation.isPending || updateMutation.isPending}
+        isLoading={isSubmitting}
       />
 
       <BranchDetailsModal
@@ -662,7 +640,7 @@ export const BranchesPage: React.FC = () => {
         }}
         branch={branchToDelete}
         onConfirm={handleDeleteConfirm}
-        isLoading={deleteMutation.isPending}
+        isLoading={isDeleting}
       />
     </div>
   );

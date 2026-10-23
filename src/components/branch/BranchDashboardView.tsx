@@ -67,7 +67,7 @@ export const BranchDashboardView: React.FC = () => {
         <div>
           <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
             <FiBarChart2 className="w-5 h-5 text-primary" />
-            <span>لوحة تحكم وإحصائيات الفرع (/api/branch/dashboard)</span>
+            <span>لوحة تحكم وإحصائيات الفرع</span>
           </h3>
           <p className="text-xs text-slate-400 dark:text-neutral-400 mt-0.5">
             مؤشرات أداء المبيعات، نمو الطلبات، والأصناف الأكثر مبيعاً
