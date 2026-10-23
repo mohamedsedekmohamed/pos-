@@ -11,6 +11,7 @@ import type {
   UserCartResponse,
   UserAddToCartPayload,
   UserUpdateCartPayload,
+  UserPaymentMethod,
   UserCheckoutPayload,
   UserCheckoutSuccessResponse,
   UserOrderData,
@@ -230,14 +231,52 @@ export const userApi = {
     }
   },
 
-  // ── 8. Orders & Checkout ──
+  // ── 8. Payment Methods ──
+  getPaymentMethods: async (lang?: string): Promise<UserPaymentMethod[]> => {
+    const { data } = await userAxios.get<{ status: boolean; data: UserPaymentMethod[] }>(
+      '/api/user/payment-methods',
+      { params: { lang } }
+    );
+    return data.data || [];
+  },
+
+  // ── 9. Menu Images ──
+  getMenuImages: async (lang?: string): Promise<string[]> => {
+    const { data } = await userAxios.get<{ status: boolean; data: string[] }>(
+      '/api/user/menu',
+      { params: { lang } }
+    );
+    return Array.isArray(data.data) ? data.data : [];
+  },
+
+  // ── 10. Orders & Checkout ──
   checkout: async (payload: UserCheckoutPayload): Promise<UserCheckoutSuccessResponse> => {
     const uuId = payload.uu_id || getUserUUID();
+    const formData = new FormData();
+
+    formData.append('uu_id', uuId);
+    formData.append('payment_method_id', String(payload.payment_method_id));
+    formData.append('lat', String(payload.lat));
+    formData.append('lng', String(payload.lng));
+    formData.append('address', payload.address);
+    formData.append('phone', payload.phone);
+    formData.append('name', payload.name);
+
+    if (payload.note) formData.append('note', payload.note);
+    if (payload.module) formData.append('module', payload.module);
+    if (payload.lang) formData.append('lang', payload.lang);
+
+    if (payload.receipt instanceof File) {
+      formData.append('receipt', payload.receipt);
+    }
+
     const { data } = await userAxios.post<UserCheckoutSuccessResponse>(
       '/api/user/orders/checkout',
+      formData,
       {
-        ...payload,
-        uu_id: uuId,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       }
     );
     return data;

@@ -46,13 +46,9 @@ function App() {
                 
                 {/* 1. Cashier Login (تسجيل دخول الكاشير) */}
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/cashier/login" element={<LoginPage />} />
-                <Route path="/login/cashier" element={<LoginPage />} />
                 
                 {/* 2. Branch Login (تسجيل دخول الفرع) */}
                 <Route path="/branch/login" element={<BranchLoginPage />} />
-                <Route path="/branch-login" element={<BranchLoginPage />} />
-                <Route path="/login/branch" element={<BranchLoginPage />} />
                 
                 {/* Branches System (الفروع) */}
                 <Route path="/branches" element={<BranchesPage />} />

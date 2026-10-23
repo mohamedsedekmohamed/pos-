@@ -20,8 +20,24 @@ export interface UserBusinessSetup {
   start_day?: string;
   end_day?: string;
   working_hours_text?: string;
+  menu?: string[];
+  raw_menu?: string[];
+  table_order_url?: string | null;
+  has_gift?: boolean;
+  price_gift?: number;
+  is_overnight?: boolean;
   created_at?: string;
   updated_at?: string;
+}
+
+// ── Payment Methods ──
+export interface UserPaymentMethod {
+  id: number;
+  name: string;
+  is_cash: boolean;
+  icon?: string | null;
+  description?: { ar?: string; en?: string } | string | null;
+  status?: boolean;
 }
 
 // ── Order Tracking Status ──
@@ -226,6 +242,8 @@ export interface UserCartResponse {
 // ── Checkout & Orders Types ──
 export interface UserCheckoutPayload {
   uu_id: string;
+  payment_method_id: number;
+  receipt?: File | null;
   lat: number;
   lng: number;
   address: string;
@@ -233,6 +251,7 @@ export interface UserCheckoutPayload {
   name: string;
   note?: string;
   module?: UserOrderModule;
+  lang?: string;
 }
 
 export interface UserOrderProduct {
@@ -240,12 +259,33 @@ export interface UserOrderProduct {
   product_id: number;
   quantity: number;
   price: number;
-  name?: string;
+  name?: { ar?: string; en?: string } | string;
+  name_translations?: { ar?: string; en?: string } | null;
+  product?: {
+    id: number;
+    name?: { ar?: string; en?: string } | string;
+    image?: string;
+    price?: number;
+  };
+  note?: string | null;
+  variations?: any[];
+  addons?: any[];
 }
 
 export interface UserOrderBranch {
   id: number;
-  name: string;
+  name: { ar?: string; en?: string } | string;
+}
+
+export interface UserOrderPaymentMethod {
+  id: number;
+  name: { ar?: string; en?: string } | string;
+  description?: { ar?: string; en?: string } | string | null;
+  icon?: string | null;
+  status?: boolean;
+  is_cash: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface UserOrderData {
@@ -255,6 +295,15 @@ export interface UserOrderData {
   cashier_id?: number | null;
   cashier_man_id?: number | null;
   hall_table_id?: number | null;
+  financial_account_id?: number | null;
+  financial_id?: number | null;
+  financial_account?: any;
+  payment_method_id?: number | null;
+  payment_method?: UserOrderPaymentMethod | null;
+  receipt?: string | null;
+  reciept?: string | null;
+  delivery_id?: number | null;
+  delivery?: any;
   branch_id: number;
   module: UserOrderModule;
   address: string;
@@ -264,13 +313,14 @@ export interface UserOrderData {
   phone: string;
   name: string;
   is_pos: boolean;
+  paid?: boolean;
+  status?: UserOrderStatus;
   total: number;
   total_tax: number;
   total_discount: number;
   final_price: number;
   branch: UserOrderBranch;
   products: UserOrderProduct[];
-  status?: UserOrderStatus;
   created_at: string;
   updated_at: string;
 }

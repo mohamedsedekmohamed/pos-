@@ -8,10 +8,12 @@ import {
   FiPackage,
   FiPhone,
   FiSliders,
+  FiBookOpen,
 } from 'react-icons/fi';
 import { useLanguage } from '../../context/LanguageContext';
 import { useUserCart } from '../../context/UserCartContext';
 import { useBusinessSetup } from '../../hooks/useBusinessSetup';
+import { UserPaperMenuModal } from './UserPaperMenuModal';
 
 export const UserHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ export const UserHeader: React.FC = () => {
 
   const isRtl = language === 'ar';
   const [isBumping, setIsBumping] = useState(false);
+  const [isPaperMenuOpen, setIsPaperMenuOpen] = useState(false);
 
   useEffect(() => {
     if (itemCount > 0) {
@@ -120,6 +123,17 @@ export const UserHeader: React.FC = () => {
               </a>
             )}
 
+            {/* Paper Menu Viewer Button */}
+            <button
+              type="button"
+              onClick={() => setIsPaperMenuOpen(true)}
+              className="p-1.5 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 hover:text-primary dark:hover:text-primary transition-all text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+              title="عرض صور المنيو الورقي"
+            >
+              <FiBookOpen className="w-4 h-4 text-primary" />
+              <span className="hidden md:inline text-xs font-semibold">المنيو الورقي</span>
+            </button>
+
             {/* Profile & Theme Settings Button */}
             <button
               type="button"
@@ -210,6 +224,11 @@ export const UserHeader: React.FC = () => {
         </div>
 
       </div>
+
+      <UserPaperMenuModal
+        isOpen={isPaperMenuOpen}
+        onClose={() => setIsPaperMenuOpen(false)}
+      />
     </header>
   );
 };

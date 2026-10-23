@@ -11,18 +11,36 @@ import {
   FiArrowRight,
   FiShoppingBag,
   FiLoader,
+  FiCreditCard,
+  FiImage,
 } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa6';
 import { userApi } from '../../services/userService';
 import { useBusinessSetup } from '../../hooks/useBusinessSetup';
+import { useLanguage } from '../../context/LanguageContext';
 import { OrderTrackingTimeline } from '../../components/user/OrderTrackingTimeline';
 import type { UserOrderData } from '../../types/user';
+
+const getLocalizedText = (
+  val: any,
+  currentLang: string = 'ar',
+  fallback: string = ''
+): string => {
+  if (!val) return fallback;
+  if (typeof val === 'string') return val;
+  if (typeof val === 'number') return String(val);
+  if (typeof val === 'object') {
+    return (currentLang === 'en' ? val.en || val.ar : val.ar || val.en) || fallback;
+  }
+  return fallback;
+};
 
 export const OrderSuccessPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const { business } = useBusinessSetup();
+  const { language } = useLanguage();
 
   // Check if order was passed via navigation state
   const stateOrder = location.state?.order as UserOrderData | undefined;
@@ -174,7 +192,7 @@ export const OrderSuccessPage: React.FC = () => {
               <span className="text-slate-500 dark:text-neutral-400 block mb-1">الفرع المسؤول</span>
               <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
                 <FiMapPin className="w-3.5 h-3.5 text-primary" />
-                <span>{order?.branch?.name || 'الفرع الرئيسي'}</span>
+                <span>{getLocalizedText(order?.branch?.name, language, 'الفرع الرئيسي')}</span>
                 {distanceKm !== undefined && (
                   <span className="text-[10px] text-slate-400 dark:text-neutral-400 font-normal">
                     ({distanceKm} كم)
@@ -192,7 +210,7 @@ export const OrderSuccessPage: React.FC = () => {
                   <FiUser className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-500" />
                   <span>اسم المستلم:</span>
                 </span>
-                <span className="font-bold text-slate-900 dark:text-white">{order.name}</span>
+                <span className="font-bold text-slate-900 dark:text-white">{getLocalizedText(order.name, language)}</span>
               </div>
 
               <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-white/5 pb-2">
@@ -209,15 +227,108 @@ export const OrderSuccessPage: React.FC = () => {
                   <span>عنوان التوصيل:</span>
                 </span>
                 <span className="font-semibold text-slate-700 dark:text-neutral-200 text-left max-w-xs leading-relaxed">
-                  {order.address}
+                  {getLocalizedText(order.address, language)}
                 </span>
               </div>
 
-              {order.note && (
-                <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 text-amber-600 dark:text-amber-300/90 italic">
-                  ملاحظة: {order.note}
+              {order.payment_method && (
+                <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-white/5 pb-2">
+                  <span className="text-slate-500 dark:text-neutral-400 flex items-center gap-1.5">
+                    <FiCreditCard className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-500" />
+                    <span>طريقة الدفع:</span>
+                  </span>
+                  <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
+                    {order.payment_method.icon && (
+                      <img
+                        src={order.payment_method.icon}
+                        alt=""
+                        className="w-4 h-4 object-contain rounded"
+                      />
+                    )}
+                    <span>
+                      {getLocalizedText(
+                        order.payment_method.name,
+                        language,
+                        order.payment_method.is_cash ? 'الدفع نقداً' : 'تحويل إلكتروني'
+                      )}
+                    </span>
+                    {order.paid && (
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">
+                        مدفوع
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
+
+              {(order.receipt || order.reciept) && (
+                <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-white/5 pb-2">
+                  <span className="text-slate-500 dark:text-neutral-400 flex items-center gap-1.5">
+                    <FiImage className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>إيصال التحويل:</span>
+                  </span>
+                  <a
+                    href={(order.receipt || order.reciept)!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-[11px] transition-colors"
+                  >
+                    <span>عرض الإيصال المرفق 📄</span>
+                  </a>
+                </div>
+              )}
+
+              {order.note && (
+                <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 text-amber-600 dark:text-amber-300/90 italic">
+                  ملاحظة: {getLocalizedText(order.note, language)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Ordered Items List */}
+          {order && Array.isArray(order.products) && order.products.length > 0 && (
+            <div className="bg-slate-50 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-200/60 dark:border-white/5 text-right text-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-white/5 pb-2">
+                <span className="font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                  <FiShoppingBag className="w-4 h-4 text-primary" />
+                  <span>الأصناف المطلوبة ({order.products.length})</span>
+                </span>
+              </div>
+              <div className="divide-y divide-slate-100 dark:divide-white/5">
+                {order.products.map((item) => {
+                  const itemName = getLocalizedText(
+                    item.name_translations || item.product?.name || item.name,
+                    language,
+                    'وجبة'
+                  );
+                  const itemImage = item.product?.image;
+                  return (
+                    <div key={item.id} className="py-2.5 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {itemImage && (
+                          <img
+                            src={itemImage}
+                            alt=""
+                            className="w-10 h-10 rounded-xl object-cover border border-slate-200/60 dark:border-white/10 shrink-0"
+                          />
+                        )}
+                        <div className="min-w-0 text-right">
+                          <div className="font-bold text-slate-900 dark:text-white truncate">
+                            {itemName}
+                          </div>
+                          <div className="text-[11px] text-slate-500 dark:text-neutral-400">
+                            الكمية: {item.quantity} &times; {Number(item.price).toFixed(2)} ج.م
+                          </div>
+                        </div>
+                      </div>
+                      <div className="font-black text-slate-900 dark:text-white shrink-0 text-xs">
+                        {(Number(item.price) * Number(item.quantity)).toFixed(2)} ج.م
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -284,14 +395,7 @@ export const OrderSuccessPage: React.FC = () => {
               <span>طلب جديد من القائمة</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.03] dark:hover:bg-white/[0.08] text-slate-600 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white text-xs font-semibold transition-all cursor-pointer"
-            >
-              <FiArrowRight className="w-3.5 h-3.5" />
-              <span>العودة إلى الصفحة الرئيسية</span>
-            </button>
+          
           </div>
 
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   FiX,
   FiMapPin,
@@ -12,16 +13,27 @@ import {
   FiAlertTriangle,
   FiLoader,
   FiNavigation,
+  FiCreditCard,
+  FiDollarSign,
+  FiUploadCloud,
+  FiImage,
+  FiTrash2,
 } from 'react-icons/fi';
 import { userApi } from '../../services/userService';
 import { useUserCart } from '../../context/UserCartContext';
 import { useUserUUID } from '../../hooks/useUserUUID';
 import { useBusinessSetup } from '../../hooks/useBusinessSetup';
+import type { UserPaymentMethod } from '../../types/user';
 
 interface UserCheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const DEFAULT_PAYMENT_METHODS: UserPaymentMethod[] = [
+  { id: 1, name: 'نقداً عند الاستلام', is_cash: true },
+  { id: 2, name: 'فودافون كاش / إنستاباي', is_cash: false },
+];
 
 export const UserCheckoutModal: React.FC<UserCheckoutModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -36,6 +48,40 @@ export const UserCheckoutModal: React.FC<UserCheckoutModalProps> = ({ isOpen, on
   const [note, setNote] = useState('');
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
+
+  // Payment State
+  const [selectedMethodId, setSelectedMethodId] = useState<number | null>(null);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+
+  // Query Payment Methods
+  const { data: paymentMethods = [] } = useQuery<UserPaymentMethod[]>({
+    queryKey: ['user-payment-methods'],
+    queryFn: () => userApi.getPaymentMethods(),
+    enabled: isOpen,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const availableMethods = paymentMethods.length > 0 ? paymentMethods : DEFAULT_PAYMENT_METHODS;
+  const selectedMethod = availableMethods.find((m) => m.id === selectedMethodId) || availableMethods[0];
+
+  // Auto select default cash payment method
+  useEffect(() => {
+    if (availableMethods.length > 0 && selectedMethodId === null) {
+      const defaultCash = availableMethods.find((m) => m.is_cash);
+      setSelectedMethodId(defaultCash ? defaultCash.id : availableMethods[0].id);
+    }
+  }, [availableMethods, selectedMethodId]);
+
+  // Clean up receipt state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setReceiptFile(null);
+      setReceiptPreview(null);
+      setErrorMessage(null);
+      setOutOfRangeData(null);
+    }
+  }, [isOpen]);
 
   // GPS State
   const [isLocating, setIsLocating] = useState(false);
@@ -103,6 +149,33 @@ export const UserCheckoutModal: React.FC<UserCheckoutModalProps> = ({ isOpen, on
     );
   };
 
+  // Handle Receipt File Upload
+  const handleReceiptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setErrorMessage('يجب أن يكون إيصال الدفع ملف صورة (JPG, PNG, WebP)');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMessage('حجم صورة الإيصال يجب ألا يتجاوز 5 ميجابايت');
+        return;
+      }
+      setReceiptFile(file);
+      setErrorMessage(null);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setReceiptPreview(ev.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveReceipt = () => {
+    setReceiptFile(null);
+    setReceiptPreview(null);
+  };
+
   // Auto trigger location request once modal opens if delivery module
   useEffect(() => {
     if (isOpen && module === 'delivery' && lat === null) {
@@ -140,6 +213,15 @@ export const UserCheckoutModal: React.FC<UserCheckoutModalProps> = ({ isOpen, on
       return;
     }
 
+    const effectiveMethodId = selectedMethodId || (availableMethods[0] ? availableMethods[0].id : 1);
+    const activeMethod = availableMethods.find((m) => m.id === effectiveMethodId);
+
+    // If electronic payment (non-cash), receipt is required
+    if (activeMethod && !activeMethod.is_cash && !receiptFile) {
+      setErrorMessage('إيصال الدفع مطلوب عند اختيار طريقة دفع غير نقدية. يرجى إرفاق صورة إيصال التحويل.');
+      return;
+    }
+
     // Default to fallback coordinates if user hasn't gotten GPS yet
     const finalLat = lat ?? 29.965;
     const finalLng = lng ?? 31.258;
@@ -158,6 +240,8 @@ export const UserCheckoutModal: React.FC<UserCheckoutModalProps> = ({ isOpen, on
 
       const res = await userApi.checkout({
         uu_id: uuId,
+        payment_method_id: effectiveMethodId,
+        receipt: receiptFile,
         lat: finalLat,
         lng: finalLng,
         address: address.trim(),
@@ -181,15 +265,25 @@ export const UserCheckoutModal: React.FC<UserCheckoutModalProps> = ({ isOpen, on
     } catch (err: any) {
       const responseData = err.response?.data;
       if (err.response?.status === 422) {
-        // Out of delivery coverage range
-        setErrorMessage(
-          responseData?.message ||
-            'عذراً، موقعك الحالي خارج نطاق التوصيل المتاح لأقرب فرع.'
-        );
-        setOutOfRangeData({
-          distance: responseData?.distance,
-          max_cover: responseData?.max_cover,
-        });
+        if (responseData?.distance !== undefined && responseData?.max_cover !== undefined) {
+          // Out of delivery coverage range
+          setErrorMessage(
+            responseData?.message ||
+              'عذراً، موقعك الحالي خارج نطاق التوصيل المتاح لأقرب فرع.'
+          );
+          setOutOfRangeData({
+            distance: responseData?.distance,
+            max_cover: responseData?.max_cover,
+          });
+        } else {
+          // Validation error (payment method or receipt)
+          const validationMsg =
+            responseData?.errors?.receipt?.[0] ||
+            responseData?.errors?.payment_method_id?.[0] ||
+            responseData?.message ||
+            'يرجى التحقق من صحة البيانات المدخلة وطريقة الدفع.';
+          setErrorMessage(validationMsg);
+        }
       } else {
         setErrorMessage(
           responseData?.message ||
@@ -417,6 +511,140 @@ export const UserCheckoutModal: React.FC<UserCheckoutModalProps> = ({ isOpen, on
               className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-primary transition-all"
             />
           </div>
+
+          {/* ── Payment Methods Selector ── */}
+          <div className="space-y-2 pt-2 border-t border-slate-200/60 dark:border-white/10">
+            <label className="text-xs font-bold text-slate-700 dark:text-neutral-300 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <FiCreditCard className="w-3.5 h-3.5 text-primary" />
+                <span>طريقة الدفع <span className="text-red-500">*</span></span>
+              </span>
+              {selectedMethod && (
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  selectedMethod.is_cash
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                    : 'bg-primary/10 text-primary border border-primary/20'
+                }`}>
+                  {selectedMethod.is_cash ? 'دفع نقدي' : 'دفع إلكتروني (يتطلب إيصال)'}
+                </span>
+              )}
+            </label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {availableMethods.map((method) => {
+                const isSelected = selectedMethod.id === method.id;
+                return (
+                  <button
+                    key={method.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedMethodId(method.id);
+                      setErrorMessage(null);
+                    }}
+                    className={`flex items-center justify-between p-3 rounded-2xl border text-right transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-primary bg-primary/10 dark:bg-primary/15 shadow-sm ring-1 ring-primary'
+                        : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] hover:border-slate-300 dark:hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                        method.is_cash
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                          : 'bg-primary/15 text-primary'
+                      }`}>
+                        {method.icon ? (
+                          <img src={method.icon} alt="" className="w-5 h-5 object-contain" />
+                        ) : method.is_cash ? (
+                          <FiDollarSign className="w-4 h-4" />
+                        ) : (
+                          <FiCreditCard className="w-4 h-4" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800 dark:text-white leading-tight">
+                          {typeof method.name === 'object'
+                            ? (method.name as any)?.ar || (method.name as any)?.en
+                            : method.name}
+                        </p>
+                        <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-0.5">
+                          {method.is_cash ? 'عند الاستلام' : 'تحويل / محفظة'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                      isSelected
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-slate-300 dark:border-white/20'
+                    }`}>
+                      {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Receipt Upload Box (Shown when is_cash is false) ── */}
+          {selectedMethod && !selectedMethod.is_cash && (
+            <div className="p-3.5 rounded-2xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/25 space-y-2.5 animate-in fade-in duration-200">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                  <FiUploadCloud className="w-4 h-4 text-amber-500" />
+                  <span>إرفاق إيصال التحويل (صورة) <span className="text-red-500">*</span></span>
+                </span>
+                <span className="text-[10px] text-amber-600 dark:text-amber-400/90 font-medium">
+                  مطلوب لإتمام الطلب
+                </span>
+              </div>
+
+              {receiptPreview ? (
+                <div className="relative rounded-xl border border-amber-500/30 overflow-hidden bg-white dark:bg-black/40 p-2.5 flex items-center justify-between gap-3 shadow-sm">
+                  <div className="flex items-center gap-2.5 overflow-hidden">
+                    <img
+                      src={receiptPreview}
+                      alt="Receipt Preview"
+                      className="w-12 h-12 object-cover rounded-lg border border-slate-200 dark:border-white/10 shrink-0"
+                    />
+                    <div className="overflow-hidden">
+                      <p className="text-xs font-bold text-slate-800 dark:text-white truncate">
+                        {receiptFile?.name || 'receipt.jpg'}
+                      </p>
+                      <p className="text-[10px] text-slate-400 dark:text-neutral-400">
+                        {receiptFile ? (receiptFile.size / 1024).toFixed(0) + ' KB' : ''} • تم إرفاق صورة الإيصال بنجاح
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleRemoveReceipt}
+                    className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors shrink-0 cursor-pointer"
+                    title="حذف الإيصال"
+                  >
+                    <FiTrash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-amber-500/40 hover:border-amber-500 rounded-xl bg-white/50 dark:bg-black/20 hover:bg-amber-500/5 transition-all cursor-pointer text-center group">
+                  <FiImage className="w-7 h-7 text-amber-500 group-hover:scale-110 transition-transform mb-1.5" />
+                  <p className="text-xs font-bold text-slate-700 dark:text-neutral-200">
+                    اضغط هنا لاختيار صورة إيصال التحويل
+                  </p>
+                  <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-0.5">
+                    يدعم صور JPEG, PNG, JPG, WebP (حتى 5 ميجابايت)
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                    onChange={handleReceiptChange}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          )}
 
           {/* Submit Action */}
           <div className="pt-3">
