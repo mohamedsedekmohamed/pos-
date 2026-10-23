@@ -70,6 +70,36 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
   const printAreaRef = useRef<HTMLDivElement>(null);
   const prevIsOpenRef = useRef(false);
 
+  const handlePrint = useReactToPrint({
+    contentRef: printAreaRef,
+    documentTitle: `Shift-Summary-${currentShift?.id || 'report'}`,
+    pageStyle: `
+      @page {
+        size: auto;
+        margin: 5mm;
+      }
+      @media print {
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        body {
+          margin: 0 !important;
+          padding: 5mm !important;
+          background: #ffffff !important;
+          color: #000000 !important;
+        }
+        #printable-shift-summary {
+          width: 100% !important;
+          max-width: 100% !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+      }
+    `,
+  });
+
   // Reset states ONLY when modal transitions from closed to open
   useEffect(() => {
     if (isOpen && !prevIsOpenRef.current) {
@@ -183,43 +213,13 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
   const deficitValue = Number(
     shiftResult?.deficit !== undefined
       ? shiftResult.deficit
-      : (expectedAmount - actualAmount)
+    : (expectedAmount - actualAmount)
   );
 
   const isExact = Math.abs(deficitValue) < 0.01;
   const isDeficit = !isExact && deficitValue > 0.01;
   const isSurplus = !isExact && deficitValue < -0.01;
   const diffMagnitude = Math.abs(deficitValue);
-
-  const handlePrint = useReactToPrint({
-    contentRef: printAreaRef,
-    documentTitle: `Shift-Summary-${currentShift?.id || 'report'}`,
-    pageStyle: `
-      @page {
-        size: auto;
-        margin: 5mm;
-      }
-      @media print {
-        * {
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        body {
-          margin: 0 !important;
-          padding: 5mm !important;
-          background: #ffffff !important;
-          color: #000000 !important;
-        }
-        #printable-shift-summary {
-          width: 100% !important;
-          max-width: 100% !important;
-          box-shadow: none !important;
-          padding: 0 !important;
-          margin: 0 !important;
-        }
-      }
-    `,
-  });
 
   const handleLogout = () => {
     handleClose();
