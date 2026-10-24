@@ -8,7 +8,6 @@ import {
   FiUser,
   FiTruck,
   FiPackage,
-  FiArrowRight,
   FiShoppingBag,
   FiLoader,
   FiCreditCard,

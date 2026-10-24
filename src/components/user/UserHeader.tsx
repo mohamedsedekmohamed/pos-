@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FiShoppingBag,
-  FiArrowRight,
   FiGlobe,
   FiTruck,
   FiPackage,
@@ -38,20 +37,8 @@ export const UserHeader: React.FC = () => {
       <div className="w-full px-3 sm:px-6 lg:px-10">
         <div className="flex items-center justify-between h-14 sm:h-20 gap-2 sm:gap-3">
           
-          {/* Brand and Return Home */}
+          {/* Brand */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="p-1.5 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white transition-all group shrink-0"
-              title="العودة للرئيسية"
-            >
-              <FiArrowRight
-                className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform ${
-                  isRtl ? 'group-hover:translate-x-0.5' : 'group-hover:-translate-x-0.5 rotate-180'
-                }`}
-              />
-            </button>
 
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               {logoUrl ? (

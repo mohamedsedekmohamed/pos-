@@ -2,18 +2,83 @@ import axios from 'axios';
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 
-// ── Token helpers (Cookies) ──
-export const TOKEN_KEY = 'auth_token';
+export type AuthGuard = 'cashier_man' | 'branch';
 
-export const getToken = (): string | null => Cookies.get(TOKEN_KEY) || null;
+// ── Cookie Storage Keys per Model / Guard ──
+export const CASHIER_TOKEN_KEY = 'pos_cashier_token';
+export const BRANCH_TOKEN_KEY = 'pos_branch_token';
+export const LEGACY_TOKEN_KEY = 'auth_token';
 
-export const setToken = (token: string): void => {
-  Cookies.set(TOKEN_KEY, token, { expires: 7, sameSite: 'lax' });
+// ── Cashier Token Helpers ──
+export const getCashierToken = (): string | null => {
+  return Cookies.get(CASHIER_TOKEN_KEY) || Cookies.get(LEGACY_TOKEN_KEY) || null;
 };
 
-export const removeToken = (): void => {
-  Cookies.remove(TOKEN_KEY);
+export const setCashierToken = (token: string): void => {
+  Cookies.set(CASHIER_TOKEN_KEY, token, { expires: 7, sameSite: 'lax' });
+  Cookies.set(LEGACY_TOKEN_KEY, token, { expires: 7, sameSite: 'lax' });
 };
+
+export const removeCashierToken = (): void => {
+  Cookies.remove(CASHIER_TOKEN_KEY);
+  if (Cookies.get(LEGACY_TOKEN_KEY) === Cookies.get(CASHIER_TOKEN_KEY)) {
+    Cookies.remove(LEGACY_TOKEN_KEY);
+  }
+};
+
+// ── Branch Token Helpers ──
+export const getBranchToken = (): string | null => {
+  return Cookies.get(BRANCH_TOKEN_KEY) || null;
+};
+
+export const setBranchToken = (token: string): void => {
+  Cookies.set(BRANCH_TOKEN_KEY, token, { expires: 7, sameSite: 'lax' });
+};
+
+export const removeBranchToken = (): void => {
+  Cookies.remove(BRANCH_TOKEN_KEY);
+};
+
+// ── Context-Aware Token Helper ──
+export const getAuthToken = (guard?: AuthGuard | string): string | null => {
+  if (guard === 'branch') return getBranchToken();
+  if (guard === 'cashier_man') return getCashierToken();
+
+  if (typeof window !== 'undefined') {
+    const path = window.location.pathname;
+    if (path.startsWith('/branch') || path.includes('/branches')) {
+      return getBranchToken() || getCashierToken();
+    }
+  }
+
+  return getCashierToken() || getBranchToken();
+};
+
+export const setAuthToken = (token: string, guard: AuthGuard | string = 'cashier_man'): void => {
+  if (guard === 'branch') {
+    setBranchToken(token);
+  } else {
+    setCashierToken(token);
+  }
+};
+
+export const removeAuthToken = (guard?: AuthGuard | string): void => {
+  if (guard === 'branch') {
+    removeBranchToken();
+  } else if (guard === 'cashier_man') {
+    removeCashierToken();
+  } else {
+    removeCashierToken();
+    removeBranchToken();
+    Cookies.remove(LEGACY_TOKEN_KEY);
+  }
+};
+
+// ── Backward Compatible Aliases ──
+export const TOKEN_KEY = LEGACY_TOKEN_KEY;
+export const getToken = (): string | null => getAuthToken();
+export const setToken = (token: string): void => setCashierToken(token);
+export const removeToken = (): void => removeAuthToken();
 
 // ── Axios instance ──
 export const api = axios.create({
@@ -25,12 +90,29 @@ export const api = axios.create({
   timeout: 15_000,
 });
 
-// ── Request interceptor: attach Bearer token & language headers ──
+// ── Request interceptor: attach Guard-specific Bearer token & language headers ──
 api.interceptors.request.use(
   (config) => {
-    const token = getToken();
+    // 1. Determine which token to attach based on endpoint and headers
+    const explicitGuard = config.headers['X-Auth-Guard'] as string | undefined;
+    let token: string | null = null;
+
+    if (explicitGuard === 'branch' || config.url?.includes('/api/branch')) {
+      token = getBranchToken();
+    } else if (explicitGuard === 'cashier_man' || config.url?.includes('/api/cashier')) {
+      token = getCashierToken();
+    } else {
+      // General endpoints like /api/auth/*: check current route context
+      token = getAuthToken(explicitGuard);
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Clean up internal header before sending to server
+    if (config.headers['X-Auth-Guard']) {
+      delete config.headers['X-Auth-Guard'];
     }
 
     const currentLang = (typeof localStorage !== 'undefined' ? localStorage.getItem('pos_language') : null) || 'ar';
@@ -47,7 +129,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ── Response interceptor: handle 401 + auto token refresh ──
+// ── Response interceptor: handle 401 with per-model isolation + auto token refresh ──
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value: unknown) => void;
@@ -87,33 +169,39 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Branch accounts do not have /api/auth/refresh-token on the server
-    const userGuard = typeof localStorage !== 'undefined' ? localStorage.getItem('pos_user_guard') : null;
-    const isBranchEndpoint =
+    const isBranchRequest =
       originalRequest.url?.includes('/api/branch') ||
-      originalRequest.url?.includes('/api/admin');
-    const isBranchUser =
-      userGuard === 'branch' ||
-      isBranchEndpoint ||
-      (typeof window !== 'undefined' && (window.location.pathname.startsWith('/branch') || window.location.pathname.includes('/branches'))) ||
-      (typeof localStorage !== 'undefined' && localStorage.getItem('pos_last_login_path') === '/branch/login');
-    const targetPath = isBranchUser ? '/branch/login' : '/login';
-    const currentToken = getToken();
+      (typeof window !== 'undefined' &&
+        (window.location.pathname.startsWith('/branch') ||
+          window.location.pathname.includes('/branches')));
 
-    // If branch user, branch endpoint, or no token present: immediately reject and do not call refresh-token
-    if (isBranchUser || !currentToken) {
-      removeToken();
+    // ── 1. BRANCH 401: Branches do not support refresh-token on backend ──
+    if (isBranchRequest) {
+      removeBranchToken();
       if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('pos_last_login_path', targetPath);
-        localStorage.removeItem('pos_user');
-        localStorage.removeItem('pos_user_guard');
+        localStorage.removeItem('pos_branch_user');
       }
-      window.dispatchEvent(new CustomEvent('auth:logout', { detail: { targetPath } }));
+      window.dispatchEvent(
+        new CustomEvent('auth:logout:branch', { detail: { targetPath: '/branch/login' } })
+      );
+      return Promise.reject(error);
+    }
+
+    // ── 2. CASHIER 401: Auto-refresh with cashier token ──
+    const cashierToken = getCashierToken();
+    if (!cashierToken) {
+      removeCashierToken();
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('pos_cashier_user');
+        localStorage.removeItem('pos_active_shift');
+      }
+      window.dispatchEvent(
+        new CustomEvent('auth:logout:cashier', { detail: { targetPath: '/login' } })
+      );
       return Promise.reject(error);
     }
 
     if (isRefreshing) {
-      // Queue the request until refresh completes
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       })
@@ -133,25 +221,27 @@ api.interceptors.response.use(
         {},
         {
           headers: {
-            Authorization: `Bearer ${getToken()}`,
+            Authorization: `Bearer ${cashierToken}`,
           },
         }
       );
 
       const newToken = data.data?.token || data.token;
-      setToken(newToken);
+      setCashierToken(newToken);
       processQueue(null, newToken);
 
       originalRequest.headers.Authorization = `Bearer ${newToken}`;
       return api(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError as AxiosError, null);
-      removeToken();
+      removeCashierToken();
       if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('pos_last_login_path', targetPath);
+        localStorage.removeItem('pos_cashier_user');
+        localStorage.removeItem('pos_active_shift');
       }
-      // Dispatch logout event for AuthContext to handle
-      window.dispatchEvent(new CustomEvent('auth:logout', { detail: { targetPath } }));
+      window.dispatchEvent(
+        new CustomEvent('auth:logout:cashier', { detail: { targetPath: '/login' } })
+      );
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
