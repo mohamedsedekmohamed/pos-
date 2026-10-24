@@ -20,6 +20,7 @@ import UserMenuPage from './pages/user/UserMenuPage';
 import OrderSuccessPage from './pages/user/OrderSuccessPage';
 import BranchesPage from './pages/branch/BranchesPage';
 import BranchLoginPage from './pages/branch/BranchLoginPage';
+import { AOSInitializer } from './components/common/AOSInitializer';
 import './App.css';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
         <LanguageProvider>
           <ToastProvider>
             <BrowserRouter>
+              <AOSInitializer />
               <AuthProvider>
               <Routes>
                 {/* Public Routes */}

@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import {
   FiChevronLeft,
   FiChevronRight,
-  FiCode,
   FiMaximize2,
   FiX,
   FiImage,
@@ -13,13 +12,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { formatImageUrl } from '../../hooks/useBusinessSetup';
 import type { UserBanner } from '../../types/user';
 
-interface UserBannersCarouselProps {
-  onOpenDocs?: () => void;
-}
-
-export const UserBannersCarousel: React.FC<UserBannersCarouselProps> = ({
-  onOpenDocs,
-}) => {
+export const UserBannersCarousel: React.FC = () => {
   const { language } = useLanguage();
   const isRtl = language === 'ar';
 
@@ -114,6 +107,8 @@ export const UserBannersCarousel: React.FC<UserBannersCarouselProps> = ({
 
   return (
     <div
+      data-aos="fade-down"
+      data-aos-duration="600"
       className="relative w-full mb-6 select-none group"
       dir="rtl"
       onMouseEnter={() => setIsPaused(true)}
@@ -171,45 +166,23 @@ export const UserBannersCarousel: React.FC<UserBannersCarouselProps> = ({
           })}
         </div>
 
-        {/* Top Badges: API Docs Button & Slide Counter */}
-        <div className="absolute top-3 inset-x-3 sm:inset-x-4 flex items-center justify-between pointer-events-auto z-10">
-          {/* Docs Button */}
-          {onOpenDocs && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenDocs();
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/60 hover:bg-black/85 backdrop-blur-md border border-white/20 text-white text-[11px] sm:text-xs font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
-              title="عرض التوثيق التقني للبانرات (API Documentation)"
-            >
-              <FiCode className="w-3.5 h-3.5 text-primary" />
-              <span>توثيق الـ API</span>
-              <span className="hidden sm:inline opacity-75 font-mono text-[10px]">
-                GET /api/user/banners
-              </span>
-            </button>
-          )}
+        {/* Top Badges: Slide Counter & Zoom Button */}
+        <div className="absolute top-3 left-3 sm:left-4 flex items-center gap-2 pointer-events-auto z-10">
+          <span className="px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] font-mono font-bold shadow-md">
+            {currentIndex + 1} / {totalBanners}
+          </span>
 
-          {/* Slide Indicator Pill & Zoom Button */}
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] font-mono font-bold">
-              {currentIndex + 1} / {totalBanners}
-            </span>
-
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (formattedImageUrl) setLightboxImage(formattedImageUrl);
-              }}
-              className="p-1.5 rounded-xl bg-black/60 hover:bg-black/85 backdrop-blur-md border border-white/20 text-white text-xs transition-all hover:scale-105 active:scale-95"
-              title="تكبير صورة البانر"
-            >
-              <FiMaximize2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (formattedImageUrl) setLightboxImage(formattedImageUrl);
+            }}
+            className="p-1.5 rounded-xl bg-black/60 hover:bg-black/85 backdrop-blur-md border border-white/20 text-white text-xs transition-all hover:scale-105 active:scale-95 shadow-md"
+            title="تكبير صورة البانر"
+          >
+            <FiMaximize2 className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {/* Navigation Arrows (Prev / Next) */}

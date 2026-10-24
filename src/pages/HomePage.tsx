@@ -145,7 +145,11 @@ const HomePage: React.FC = () => {
       <main className="relative z-10 flex-1 mx-auto px-4 py-12 sm:py-16 flex flex-col items-center justify-center w-full">
         {/* Business Showcase Card (Only shown if data exists, otherwise kept blank) */}
         {hasBusinessData && (
-          <div className="w-full max-w-2xl mb-10 p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl relative overflow-hidden text-center animate-in fade-in duration-500">
+          <div
+            data-aos="zoom-in"
+            data-aos-duration="600"
+            className="w-full max-w-2xl mb-10 p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl relative overflow-hidden text-center"
+          >
             <div className="absolute top-0 right-0 w-60 h-60 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
             {/* Business Logo */}
@@ -235,7 +239,7 @@ const HomePage: React.FC = () => {
         )}
 
         {/* Title & Introduction */}
-        <div className="text-center  mb-12 animate-in fade-in zoom-in-95 duration-500">
+        <div data-aos="fade-up" data-aos-duration="600" className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-bold text-neutral-300 mb-4 shadow-sm">
             <FiZap className="w-3.5 h-3.5 text-amber-400" />
             <span>منظومة متكاملة لنقاط البيع، خدمة الطاولات، والطلب أونلاين</span>
@@ -254,6 +258,9 @@ const HomePage: React.FC = () => {
           {/* Card 1: Online Ordering & Delivery (Public User API) */}
           <div
             onClick={() => navigate('/order')}
+            data-aos="fade-up"
+            data-aos-delay="100"
+            data-aos-duration="600"
             className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-blue-500/50 p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-500/10 cursor-pointer overflow-hidden backdrop-blur-xl"
           >
             {/* Top Glowing Ambient in Card */}
@@ -310,6 +317,9 @@ const HomePage: React.FC = () => {
           {/* Card 2: Cashier Route (Protected) */}
           <div
             onClick={() => navigate('/dashboard')}
+            data-aos="fade-up"
+            data-aos-delay="200"
+            data-aos-duration="600"
             className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-primary/50 p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer overflow-hidden backdrop-blur-xl"
           >
             {/* Top Glowing Ambient in Card */}
@@ -420,6 +430,9 @@ const HomePage: React.FC = () => {
           {/* Card 4: Branches Management & API Hub (الفروع) */}
           <div
             onClick={() => navigate('/branches')}
+            data-aos="fade-up"
+            data-aos-delay="300"
+            data-aos-duration="600"
             className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-purple-500/50 p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-purple-500/10 cursor-pointer overflow-hidden backdrop-blur-xl"
           >
             {/* Top Glowing Ambient in Card */}
@@ -567,7 +580,7 @@ const HomePage: React.FC = () => {
       )}
 
       {/* Footer */}
-      <footer className="relative z-10 w-full border-t border-white/5 py-6 text-center text-xs text-neutral-500">
+      <footer data-aos="fade-up" data-aos-duration="500" className="relative z-10 w-full border-t border-white/5 py-6 text-center text-xs text-neutral-500">
         <p>
           جميع الحقوق محفوظة &copy; {new Date().getFullYear()} {business?.name || 'POS System'}
         </p>

@@ -8,18 +8,13 @@ import {
   FiPhone,
   FiSliders,
   FiBookOpen,
-  FiCode,
 } from 'react-icons/fi';
 import { useLanguage } from '../../context/LanguageContext';
 import { useUserCart } from '../../context/UserCartContext';
 import { useBusinessSetup } from '../../hooks/useBusinessSetup';
 import { UserPaperMenuModal } from './UserPaperMenuModal';
 
-interface UserHeaderProps {
-  onOpenDocs?: () => void;
-}
-
-export const UserHeader: React.FC<UserHeaderProps> = ({ onOpenDocs }) => {
+export const UserHeader: React.FC = () => {
   const navigate = useNavigate();
   const { language, toggleLanguage } = useLanguage();
   const { business, logoUrl } = useBusinessSetup();
@@ -125,19 +120,6 @@ export const UserHeader: React.FC<UserHeaderProps> = ({ onOpenDocs }) => {
               <FiBookOpen className="w-4 h-4 text-primary" />
               <span className="hidden md:inline text-xs font-semibold">المنيو الورقي</span>
             </button>
-
-            {/* API Docs Button */}
-            {onOpenDocs && (
-              <button
-                type="button"
-                onClick={onOpenDocs}
-                className="p-1.5 sm:p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
-                title="توثيق واجهة البانرات للمطورين (User Banners API Docs)"
-              >
-                <FiCode className="w-4 h-4 text-emerald-500" />
-                <span className="hidden xl:inline text-xs font-semibold">توثيق البانرات</span>
-              </button>
-            )}
 
             {/* Profile & Theme Settings Button */}
             <button

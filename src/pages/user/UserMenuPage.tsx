@@ -26,7 +26,7 @@ import { UserProductModal } from '../../components/user/UserProductModal';
 import { UserCartDrawer } from '../../components/user/UserCartDrawer';
 import { UserCheckoutModal } from '../../components/user/UserCheckoutModal';
 import { UserBannersCarousel } from '../../components/user/UserBannersCarousel';
-import { UserBannerDocsModal } from '../../components/user/UserBannerDocsModal';
+import { refreshAOS } from '../../components/common/AOSInitializer';
 import type { UserProduct } from '../../types/user';
 
 const UserMenuContent: React.FC = () => {
@@ -60,19 +60,6 @@ const UserMenuContent: React.FC = () => {
   // Modals State
   const [selectedProduct, setSelectedProduct] = useState<UserProduct | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [isDocsOpen, setIsDocsOpen] = useState(false);
-
-  // Check URL parameter ?docs=banners to auto-open docs
-  React.useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('docs') === 'banners' || params.get('docs') === 'true') {
-        setIsDocsOpen(true);
-      }
-    } catch {
-      // Ignore URL parsing errors
-    }
-  }, []);
 
   // ── 1. Fetch Parent Categories ──
   const { data: parentCategories = [] } = useQuery({
@@ -116,6 +103,11 @@ const UserMenuContent: React.FC = () => {
     );
   }, [products, searchTerm]);
 
+  // Refresh AOS animations on product or category change
+  React.useEffect(() => {
+    refreshAOS();
+  }, [selectedCategoryId, selectedSubCategoryId, filteredProducts.length]);
+
   return (
     <div
       className="min-h-screen relative flex flex-col bg-slate-50 dark:bg-[#07070a] text-slate-900 dark:text-white selection:bg-primary selection:text-white transition-colors duration-300"
@@ -129,7 +121,7 @@ const UserMenuContent: React.FC = () => {
       </div>
 
       {/* Main Full-Width Header */}
-      <UserHeader onOpenDocs={() => setIsDocsOpen(true)} />
+      <UserHeader />
 
       {/* Sticky Top Banner when Restaurant is Closed */}
       <UserClosedBanner />
@@ -155,10 +147,14 @@ const UserMenuContent: React.FC = () => {
       <main className="relative z-10 flex-1 w-full px-3 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-8 pb-28 sm:pb-32 xl:pb-10">
         
         {/* User Banners Carousel Slider */}
-        <UserBannersCarousel onOpenDocs={() => setIsDocsOpen(true)} />
+        <UserBannersCarousel />
 
         {/* Top Controls: Search Bar, Stats, and Desktop View Toggle */}
-        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div
+          data-aos="fade-down"
+          data-aos-duration="500"
+          className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-6"
+        >
           
           {/* Search Input */}
           <div className="relative flex-1 max-w-md group">
@@ -210,7 +206,7 @@ const UserMenuContent: React.FC = () => {
         </div>
 
         {/* Categories Bar */}
-        <div className="mb-4 sm:mb-6">
+        <div data-aos="fade-up" data-aos-duration="500" data-aos-delay="50" className="mb-4 sm:mb-6">
           <UserCategoryNav
             categories={parentCategories}
             subCategories={subCategories}
@@ -277,7 +273,11 @@ const UserMenuContent: React.FC = () => {
 
           {/* Desktop Live Cart Sidebar (Fixed on wide screens like DashboardHome) */}
           {showDesktopCart && (
-            <aside className="hidden xl:flex w-[360px] 2xl:w-[400px] shrink-0 sticky top-24 rounded-3xl bg-white/95 dark:bg-[#101015]/95 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl flex-col max-h-[calc(100vh-7.5rem)] overflow-hidden animate-in fade-in slide-in-from-left-4 duration-300">
+            <aside
+              data-aos="fade-left"
+              data-aos-duration="600"
+              className="hidden xl:flex w-[360px] 2xl:w-[400px] shrink-0 sticky top-24 rounded-3xl bg-white/95 dark:bg-[#101015]/95 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl flex-col max-h-[calc(100vh-7.5rem)] overflow-hidden animate-in fade-in slide-in-from-left-4 duration-300"
+            >
               
               {/* Sidebar Header */}
               <div className="p-4 sm:p-5 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between bg-slate-50 dark:bg-[#14141c]">
@@ -548,7 +548,11 @@ const UserMenuContent: React.FC = () => {
 
       {/* Floating Bottom Bar for Mobile Devices */}
       {itemCount > 0 && (
-        <div className="xl:hidden fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 z-40 animate-in slide-in-from-bottom duration-300">
+        <div
+          data-aos="slide-up"
+          data-aos-duration="400"
+          className="xl:hidden fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 z-40 animate-in slide-in-from-bottom duration-300"
+        >
           <button
             type="button"
             onClick={openCart}
@@ -586,12 +590,6 @@ const UserMenuContent: React.FC = () => {
       <UserCheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
-      />
-
-      {/* User Banners Technical API Documentation Modal */}
-      <UserBannerDocsModal
-        isOpen={isDocsOpen}
-        onClose={() => setIsDocsOpen(false)}
       />
     </div>
   );

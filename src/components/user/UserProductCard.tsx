@@ -36,10 +36,11 @@ export const UserProductCard: React.FC<UserProductCardProps> = ({
   return (
     <div
       onClick={handleCardClick}
-      style={{
-        animationDelay: `${Math.min(index * 45, 600)}ms`,
-      }}
-      className="group relative rounded-2xl sm:rounded-3xl bg-white dark:bg-[#111116]/95 hover:bg-slate-50/80 dark:hover:bg-[#15151e] border border-slate-200/80 dark:border-white/10 hover:border-primary/50 p-2.5 sm:p-4 md:p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-xl hover:shadow-primary/15 cursor-pointer overflow-hidden backdrop-blur-xl animate-fade-in-up"
+      data-aos="fade-up"
+      data-aos-delay={Math.min((index % 8) * 50, 350)}
+      data-aos-duration="500"
+      data-aos-once="true"
+      className="group relative rounded-2xl sm:rounded-3xl bg-white dark:bg-[#111116]/95 hover:bg-slate-50/80 dark:hover:bg-[#15151e] border border-slate-200/80 dark:border-white/10 hover:border-primary/50 p-2.5 sm:p-4 md:p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-xl hover:shadow-primary/15 cursor-pointer overflow-hidden backdrop-blur-xl"
     >
       {/* Dynamic Animated Ambient Glow */}
       <div className="absolute -top-10 -right-10 w-36 h-36 bg-gradient-to-br from-primary/20 to-indigo-500/10 rounded-full blur-2xl group-hover:scale-150 group-hover:opacity-100 opacity-20 dark:opacity-30 transition-all duration-500 pointer-events-none" />
