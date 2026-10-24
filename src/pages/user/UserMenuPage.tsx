@@ -25,6 +25,8 @@ import { UserProductCard } from '../../components/user/UserProductCard';
 import { UserProductModal } from '../../components/user/UserProductModal';
 import { UserCartDrawer } from '../../components/user/UserCartDrawer';
 import { UserCheckoutModal } from '../../components/user/UserCheckoutModal';
+import { UserBannersCarousel } from '../../components/user/UserBannersCarousel';
+import { UserBannerDocsModal } from '../../components/user/UserBannerDocsModal';
 import type { UserProduct } from '../../types/user';
 
 const UserMenuContent: React.FC = () => {
@@ -58,6 +60,19 @@ const UserMenuContent: React.FC = () => {
   // Modals State
   const [selectedProduct, setSelectedProduct] = useState<UserProduct | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isDocsOpen, setIsDocsOpen] = useState(false);
+
+  // Check URL parameter ?docs=banners to auto-open docs
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('docs') === 'banners' || params.get('docs') === 'true') {
+        setIsDocsOpen(true);
+      }
+    } catch {
+      // Ignore URL parsing errors
+    }
+  }, []);
 
   // ── 1. Fetch Parent Categories ──
   const { data: parentCategories = [] } = useQuery({
@@ -114,7 +129,7 @@ const UserMenuContent: React.FC = () => {
       </div>
 
       {/* Main Full-Width Header */}
-      <UserHeader />
+      <UserHeader onOpenDocs={() => setIsDocsOpen(true)} />
 
       {/* Sticky Top Banner when Restaurant is Closed */}
       <UserClosedBanner />
@@ -139,6 +154,9 @@ const UserMenuContent: React.FC = () => {
       {/* Main Full-Width Container (takes entire screen width) */}
       <main className="relative z-10 flex-1 w-full px-3 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-8 pb-28 sm:pb-32 xl:pb-10">
         
+        {/* User Banners Carousel Slider */}
+        <UserBannersCarousel onOpenDocs={() => setIsDocsOpen(true)} />
+
         {/* Top Controls: Search Bar, Stats, and Desktop View Toggle */}
         <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-6">
           
@@ -568,6 +586,12 @@ const UserMenuContent: React.FC = () => {
       <UserCheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
+      />
+
+      {/* User Banners Technical API Documentation Modal */}
+      <UserBannerDocsModal
+        isOpen={isDocsOpen}
+        onClose={() => setIsDocsOpen(false)}
       />
     </div>
   );

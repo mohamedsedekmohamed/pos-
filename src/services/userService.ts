@@ -16,6 +16,7 @@ import type {
   UserCheckoutSuccessResponse,
   UserOrderData,
   UserOrderModule,
+  UserBanner,
 } from '../types/user';
 
 export const USER_API_BASE_URL = 'https://ecommerce.mazoom.online';
@@ -287,5 +288,19 @@ export const userApi = {
       `/api/user/orders/${orderId}`
     );
     return data.data;
+  },
+
+  // ── 11. Banners ──
+  getBanners: async (lang?: string): Promise<UserBanner[]> => {
+    try {
+      const { data } = await userAxios.get<{ status: boolean; data: UserBanner[] }>(
+        '/api/user/banners',
+        { params: { lang } }
+      );
+      return Array.isArray(data.data) ? data.data : [];
+    } catch (error) {
+      console.warn('Failed to fetch user banners:', error);
+      return [];
+    }
   },
 };

@@ -30,6 +30,18 @@ export interface UserBusinessSetup {
   updated_at?: string;
 }
 
+// ── Banners ──
+export interface UserBanner {
+  id: number;
+  image: string;
+  created_at?: string;
+}
+
+export interface UserBannersResponse {
+  status: boolean;
+  data: UserBanner[];
+}
+
 // ── Payment Methods ──
 export interface UserPaymentMethod {
   id: number;
