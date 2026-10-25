@@ -16,6 +16,7 @@ import {
   FiUser,
 } from 'react-icons/fi';
 import { FaWhatsapp, FaFacebookF, FaInstagram, FaPhone } from 'react-icons/fa6';
+import { GiCookingPot } from 'react-icons/gi';
 import { useBusinessSetup } from '../hooks/useBusinessSetup';
 
 const HomePage: React.FC = () => {
@@ -51,6 +52,53 @@ const HomePage: React.FC = () => {
   const whatsappUrl = getWhatsAppLink(business?.whats, business?.phone);
   const facebookUrl = formatSocialLink(business?.face, 'fb');
   const instagramUrl = formatSocialLink(business?.instagram, 'insta');
+
+  const portalCards = [
+    {
+      title: 'الطلب والتوصيل أونلاين',
+      path: '/order',
+      icon: FiTruck,
+      glow: 'bg-blue-500/10 group-hover:bg-blue-500/25',
+      borderHover: 'hover:border-blue-500/50',
+      shadowHover: 'hover:shadow-blue-500/20',
+      iconBox: 'bg-gradient-to-tr from-blue-500/20 to-indigo-500/10 border-blue-500/30 text-blue-400 shadow-blue-500/10',
+      titleHover: 'group-hover:text-blue-400',
+      btnHover: 'group-hover:bg-blue-500 group-hover:border-blue-500',
+    },
+    {
+      title: 'بوابة الكاشير والمبيعات',
+      path: '/dashboard',
+      icon: FiMonitor,
+      glow: 'bg-primary/10 group-hover:bg-primary/25',
+      borderHover: 'hover:border-primary/50',
+      shadowHover: 'hover:shadow-primary/20',
+      iconBox: 'bg-gradient-to-tr from-primary/20 to-indigo-500/10 border-primary/30 text-primary shadow-primary/10',
+      titleHover: 'group-hover:text-primary',
+      btnHover: 'group-hover:bg-primary group-hover:border-primary',
+    },
+    {
+      title: 'شاشة ونظام المطبخ',
+      path: '/kitchen/login',
+      icon: GiCookingPot,
+      glow: 'bg-orange-500/10 group-hover:bg-orange-500/25',
+      borderHover: 'hover:border-orange-500/50',
+      shadowHover: 'hover:shadow-orange-500/20',
+      iconBox: 'bg-gradient-to-tr from-orange-500/20 to-amber-500/10 border-orange-500/30 text-orange-400 shadow-orange-500/10',
+      titleHover: 'group-hover:text-orange-400',
+      btnHover: 'group-hover:bg-orange-500 group-hover:border-orange-500',
+    },
+    {
+      title: 'منظومة وإدارة الفروع',
+      path: '/branches',
+      icon: FiMapPin,
+      glow: 'bg-purple-500/10 group-hover:bg-purple-500/25',
+      borderHover: 'hover:border-purple-500/50',
+      shadowHover: 'hover:shadow-purple-500/20',
+      iconBox: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10 border-purple-500/30 text-purple-400 shadow-purple-500/10',
+      titleHover: 'group-hover:text-purple-400',
+      btnHover: 'group-hover:bg-purple-500 group-hover:border-purple-500',
+    },
+  ];
 
   return (
     <div
@@ -131,6 +179,15 @@ const HomePage: React.FC = () => {
             >
               <FiMapPin className="w-3.5 h-3.5" />
               <span>دخول الفرع</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/kitchen/login')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/25 text-xs font-bold text-orange-400 hover:text-orange-300 transition-all cursor-pointer"
+            >
+              <GiCookingPot className="w-3.5 h-3.5" />
+              <span>دخول المطبخ</span>
             </button>
 
             <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-neutral-400 bg-white/[0.03] border border-white/10 px-3 py-1.5 rounded-full mr-1">
@@ -253,250 +310,49 @@ const HomePage: React.FC = () => {
           </p>
         </div>
 
-        {/* The Action Cards (4 Columns) */}
-        <div className="flex flex-wrap  justify-center gap-10 sm:gap-6 w-full">
-          {/* Card 1: Online Ordering & Delivery (Public User API) */}
-          <div
-            onClick={() => navigate('/order')}
-            data-aos="fade-up"
-            data-aos-delay="100"
-            data-aos-duration="600"
-            className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-blue-500/50 p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-500/10 cursor-pointer overflow-hidden backdrop-blur-xl"
-          >
-            {/* Top Glowing Ambient in Card */}
-            <div className="absolute top-0 right-0 w-44 h-44 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-colors pointer-events-none" />
+        {/* The Action Cards (Names & Direct Navigation Only) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
+          {portalCards.map((card, idx) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.path}
+                onClick={() => navigate(card.path)}
+                data-aos="fade-up"
+                data-aos-delay={(idx + 1) * 100}
+                data-aos-duration="600"
+                className={`group relative rounded-3xl bg-[#101014]/90 border border-white/10 ${card.borderHover} p-8 flex flex-col items-center justify-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${card.shadowHover} cursor-pointer overflow-hidden backdrop-blur-xl min-h-[220px]`}
+              >
+                {/* Glow Ambient */}
+                <div
+                  className={`absolute top-0 right-0 w-36 h-36 rounded-full blur-3xl transition-colors pointer-events-none ${card.glow}`}
+                />
 
-            <div>
-              {/* Header inside Card */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-500/20 to-indigo-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/10">
-                  <FiTruck className="w-7 h-7" />
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">
-                  <FiGlobe className="w-3.5 h-3.5" />
-                  <span>عام (بدون تسجيل)</span>
-                </div>
-              </div>
-
-              {/* Title & Description */}
-              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
-                الطلب والتوصيل أونلاين
-              </h2>
-              <p className="text-sm text-neutral-400 leading-relaxed mb-6">
-                تصفح قائمة الطعام بالكامل، أضف لسلتك، واطلب التوصيل لموقعك مباشرة مع تحديد الموقع بالـ GPS.
-              </p>
-
-              {/* Feature Highlights */}
-              <div className="space-y-2.5 mb-8 text-xs font-medium text-neutral-300">
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-blue-400 shrink-0" />
-                  <span>تصفح المنيو، الأسعار والخصومات</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-blue-400 shrink-0" />
-                  <span>سلة مشتريات وإضافات مخصصة</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-blue-400 shrink-0" />
-                  <span>تحديد موقع التوصيل وحساب التغطية</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-              <span className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">
-                تصفح المنيو واطلب الآن
-              </span>
-              <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-neutral-300 group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500 transition-all">
-                <FiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2: Cashier Route (Protected) */}
-          <div
-            onClick={() => navigate('/dashboard')}
-            data-aos="fade-up"
-            data-aos-delay="200"
-            data-aos-duration="600"
-            className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-primary/50 p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer overflow-hidden backdrop-blur-xl"
-          >
-            {/* Top Glowing Ambient in Card */}
-            <div className="absolute top-0 right-0 w-44 h-44 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors pointer-events-none" />
-
-            <div>
-              {/* Header inside Card */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary/20 to-indigo-500/10 border border-primary/30 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-primary/10">
-                  <FiMonitor className="w-7 h-7" />
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold">
-                  <FiLock className="w-3.5 h-3.5" />
-                  <span>محمي (تسجيل دخول)</span>
-                </div>
-              </div>
-
-              {/* Title & Description */}
-              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
-                بوابة الكاشير والمبيعات
-              </h2>
-              <p className="text-sm text-neutral-400 leading-relaxed mb-6">
-                المسار المخصص لموظفي الكاشير لإدارة الفواتير اليومية، سلة المشتريات، الدفع، والورديات.
-              </p>
-
-              {/* Feature Highlights */}
-              <div className="space-y-2.5 mb-8 text-xs font-medium text-neutral-300">
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>لوحة تحكم الكاشير ونقاط البيع</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>إدارة الورديات وفتح الصندوق</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>إتمام الدفع وطباعة الفواتير</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-              <span className="text-sm font-bold text-white group-hover:text-primary transition-colors">
-                الدخول لنظام الكاشير
-              </span>
-              <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-neutral-300 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all">
-                <FiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2: Table Route (Public) */}
-          {/* <div
-            onClick={() => {
-              setTableCodeInput('');
-              setIsTableCodeModalOpen(true);
-            }}
-            className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-emerald-500/50 p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-500/10 cursor-pointer overflow-hidden backdrop-blur-xl"
-          >
-            <div className="absolute top-0 right-0 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-colors pointer-events-none" />
-
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-emerald-500/10">
-                  <FiCoffee className="w-7 h-7" />
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
-                  <FiGlobe className="w-3.5 h-3.5" />
-                  <span>عبر رمز الطاولة (Table Code)</span>
-                </div>
-              </div>
-
-              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors">
-                بوابة طلبات الطاولة
-              </h2>
-              <p className="text-sm text-neutral-400 leading-relaxed mb-6">
-                مسار مباشر ومخصص للزبائن عبر رمز الطاولة المحدد أو مسح QR لاستعراض القائمة وإنشاء الطلب.
-              </p>
-
-              <div className="space-y-2.5 mb-8 text-xs font-medium text-neutral-300">
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>دخول مباشر برمز الطاولة الخاص بك</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>فتح الطاولة المحددة تلقائياً</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>استعراض المنيو والطلبات الذاتية</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-              <span className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">
-                طلب الطاولة عبر الكود
-              </span>
-              <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-neutral-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 transition-all">
-                <FiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-              </div>
-            </div>
-          </div> */}
-
-          {/* Card 4: Branches Management & API Hub (الفروع) */}
-          <div
-            onClick={() => navigate('/branches')}
-            data-aos="fade-up"
-            data-aos-delay="300"
-            data-aos-duration="600"
-            className="group relative rounded-3xl bg-[#101014]/90 border border-white/10 hover:border-purple-500/50 p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-purple-500/10 cursor-pointer overflow-hidden backdrop-blur-xl"
-          >
-            {/* Top Glowing Ambient in Card */}
-            <div className="absolute top-0 right-0 w-44 h-44 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-colors pointer-events-none" />
-
-            <div>
-              {/* Header inside Card */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-500/20 to-indigo-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-500/10">
-                  <FiMapPin className="w-7 h-7" />
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold">
-                  <FiLayers className="w-3.5 h-3.5" />
-                  <span>إدارة ونظام الفرع</span>
-                </div>
-              </div>
-
-              {/* Title & Description */}
-              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
-                منظومة وإدارة الفروع
-              </h2>
-              <p className="text-sm text-neutral-400 leading-relaxed mb-6">
-                إدارة الفروع، نقاط وأجهزة الكاشير، الصالات، المطابخ، والـ APIs المتكاملة لنظام الفرع.
-              </p>
-
-              {/* Feature Highlights */}
-              <div className="space-y-2.5 mb-8 text-xs font-medium text-neutral-300">
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
-                  <span>إدارة وإضافة الفروع والإحداثيات</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
-                  <span>الصالات ونقاط الكاشير وتعيين المطابخ</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <FiCheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
-                  <span>دليل واجهات الـ APIs المتكاملة</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <div className="pt-4 border-t border-white/5 flex items-center justify-between gap-2">
-              <span className="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">
-                الدخول لمنظومة الفروع
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate('/branch/login');
-                  }}
-                  className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-black border border-emerald-500/30 text-xs font-bold transition-all cursor-pointer"
+                {/* Icon */}
+                <div
+                  className={`w-16 h-16 rounded-2xl border flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110 mb-5 ${card.iconBox}`}
                 >
-                  دخول الفرع
-                </button>
-                <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-neutral-300 group-hover:bg-purple-500 group-hover:text-white group-hover:border-purple-500 transition-all">
-                  <FiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                  <Icon className="w-8 h-8" />
+                </div>
+
+                {/* Title (Only Name) */}
+                <h2
+                  className={`text-xl sm:text-2xl font-bold text-white transition-colors tracking-tight ${card.titleHover}`}
+                >
+                  {card.title}
+                </h2>
+
+                {/* Visual Arrow Indicator */}
+                <div className="mt-5">
+                  <div
+                    className={`w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-neutral-400 transition-all ${card.btnHover} group-hover:text-white`}
+                  >
+                    <FiArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
       </main>
 

@@ -2,11 +2,12 @@ import axios from 'axios';
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 
-export type AuthGuard = 'cashier_man' | 'branch';
+export type AuthGuard = 'cashier_man' | 'branch' | 'kitchen';
 
 // ── Cookie Storage Keys per Model / Guard ──
 export const CASHIER_TOKEN_KEY = 'pos_cashier_token';
 export const BRANCH_TOKEN_KEY = 'pos_branch_token';
+export const KITCHEN_TOKEN_KEY = 'pos_kitchen_token';
 export const LEGACY_TOKEN_KEY = 'auth_token';
 
 // ── Cashier Token Helpers ──
@@ -39,15 +40,32 @@ export const removeBranchToken = (): void => {
   Cookies.remove(BRANCH_TOKEN_KEY);
 };
 
+// ── Kitchen Token Helpers ──
+export const getKitchenToken = (): string | null => {
+  return Cookies.get(KITCHEN_TOKEN_KEY) || null;
+};
+
+export const setKitchenToken = (token: string): void => {
+  Cookies.set(KITCHEN_TOKEN_KEY, token, { expires: 7, sameSite: 'lax' });
+};
+
+export const removeKitchenToken = (): void => {
+  Cookies.remove(KITCHEN_TOKEN_KEY);
+};
+
 // ── Context-Aware Token Helper ──
 export const getAuthToken = (guard?: AuthGuard | string): string | null => {
   if (guard === 'branch') return getBranchToken();
   if (guard === 'cashier_man') return getCashierToken();
+  if (guard === 'kitchen') return getKitchenToken();
 
   if (typeof window !== 'undefined') {
     const path = window.location.pathname;
     if (path.startsWith('/branch') || path.includes('/branches')) {
       return getBranchToken() || getCashierToken();
+    }
+    if (path.startsWith('/kitchen')) {
+      return getKitchenToken();
     }
   }
 
@@ -57,6 +75,8 @@ export const getAuthToken = (guard?: AuthGuard | string): string | null => {
 export const setAuthToken = (token: string, guard: AuthGuard | string = 'cashier_man'): void => {
   if (guard === 'branch') {
     setBranchToken(token);
+  } else if (guard === 'kitchen') {
+    setKitchenToken(token);
   } else {
     setCashierToken(token);
   }
@@ -65,11 +85,14 @@ export const setAuthToken = (token: string, guard: AuthGuard | string = 'cashier
 export const removeAuthToken = (guard?: AuthGuard | string): void => {
   if (guard === 'branch') {
     removeBranchToken();
+  } else if (guard === 'kitchen') {
+    removeKitchenToken();
   } else if (guard === 'cashier_man') {
     removeCashierToken();
   } else {
     removeCashierToken();
     removeBranchToken();
+    removeKitchenToken();
     Cookies.remove(LEGACY_TOKEN_KEY);
   }
 };
@@ -99,6 +122,8 @@ api.interceptors.request.use(
 
     if (explicitGuard === 'branch' || config.url?.includes('/api/branch')) {
       token = getBranchToken();
+    } else if (explicitGuard === 'kitchen' || config.url?.includes('/api/kitchen')) {
+      token = getKitchenToken();
     } else if (explicitGuard === 'cashier_man' || config.url?.includes('/api/cashier')) {
       token = getCashierToken();
     } else {
