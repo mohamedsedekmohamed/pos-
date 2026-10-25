@@ -10,14 +10,22 @@ export const BRANCH_TOKEN_KEY = 'pos_branch_token';
 export const KITCHEN_TOKEN_KEY = 'pos_kitchen_token';
 export const LEGACY_TOKEN_KEY = 'auth_token';
 
+// ── Secure Cookie Configuration ──
+export const getCookieOptions = (): Cookies.CookieAttributes => ({
+  expires: 7,
+  sameSite: 'lax',
+  secure: typeof window !== 'undefined' && window.location.protocol === 'https:',
+});
+
 // ── Cashier Token Helpers ──
 export const getCashierToken = (): string | null => {
   return Cookies.get(CASHIER_TOKEN_KEY) || Cookies.get(LEGACY_TOKEN_KEY) || null;
 };
 
 export const setCashierToken = (token: string): void => {
-  Cookies.set(CASHIER_TOKEN_KEY, token, { expires: 7, sameSite: 'lax' });
-  Cookies.set(LEGACY_TOKEN_KEY, token, { expires: 7, sameSite: 'lax' });
+  const options = getCookieOptions();
+  Cookies.set(CASHIER_TOKEN_KEY, token, options);
+  Cookies.set(LEGACY_TOKEN_KEY, token, options);
 };
 
 export const removeCashierToken = (): void => {
@@ -33,7 +41,7 @@ export const getBranchToken = (): string | null => {
 };
 
 export const setBranchToken = (token: string): void => {
-  Cookies.set(BRANCH_TOKEN_KEY, token, { expires: 7, sameSite: 'lax' });
+  Cookies.set(BRANCH_TOKEN_KEY, token, getCookieOptions());
 };
 
 export const removeBranchToken = (): void => {
@@ -46,7 +54,7 @@ export const getKitchenToken = (): string | null => {
 };
 
 export const setKitchenToken = (token: string): void => {
-  Cookies.set(KITCHEN_TOKEN_KEY, token, { expires: 7, sameSite: 'lax' });
+  Cookies.set(KITCHEN_TOKEN_KEY, token, getCookieOptions());
 };
 
 export const removeKitchenToken = (): void => {
@@ -131,7 +139,13 @@ api.interceptors.request.use(
       token = getAuthToken(explicitGuard);
     }
 
-    if (token) {
+    // Only attach Authorization header to official backend endpoints to prevent credential leakage
+    const targetUrl = config.url || '';
+    const isInternalTarget =
+      !targetUrl.startsWith('http://') && !targetUrl.startsWith('https://') ||
+      (config.baseURL && targetUrl.startsWith(config.baseURL));
+
+    if (token && isInternalTarget) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 

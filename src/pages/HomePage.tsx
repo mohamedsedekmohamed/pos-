@@ -34,10 +34,13 @@ const HomePage: React.FC = () => {
     return `https://wa.me/${cleaned}`;
   };
 
-  // Helper to format social links
+  // Helper to format social links safely (blocks javascript:/data: URIs)
   const formatSocialLink = (url?: string | null, platform?: 'fb' | 'insta') => {
     if (!url) return null;
     const trimmed = url.trim();
+    if (/^(javascript|data|vbscript):/i.test(trimmed)) {
+      return null;
+    }
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
       return trimmed;
     }

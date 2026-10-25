@@ -22,6 +22,7 @@ import BranchesPage from './pages/branch/BranchesPage';
 import BranchLoginPage from './pages/branch/BranchLoginPage';
 import KitchenLoginPage from './pages/kitchen/KitchenLoginPage';
 import KitchenDisplayPage from './pages/kitchen/KitchenDisplayPage';
+import KitchenRoute from './components/KitchenRoute';
 import { AOSInitializer } from './components/common/AOSInitializer';
 import './App.css';
 
@@ -59,7 +60,9 @@ function App() {
                 
                 {/* Kitchen Display System (شاشة المطبخ) */}
                 <Route path="/kitchen/login" element={<KitchenLoginPage />} />
-                <Route path="/kitchen" element={<KitchenDisplayPage />} />
+                <Route element={<KitchenRoute />}>
+                  <Route path="/kitchen" element={<KitchenDisplayPage />} />
+                </Route>
                 
                 {/* Protected Routes (Cashier Track) */}
                 <Route element={<PrivateRoute />}>
