@@ -212,7 +212,23 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // ── 2. CASHIER 401: Auto-refresh with cashier token ──
+    const isKitchenRequest =
+      originalRequest.url?.includes('/api/kitchen') ||
+      (typeof window !== 'undefined' && window.location.pathname.startsWith('/kitchen'));
+
+    // ── 2. KITCHEN 401: Kitchen isolation, clear token and notify ──
+    if (isKitchenRequest) {
+      removeKitchenToken();
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('pos_kitchen_user');
+      }
+      window.dispatchEvent(
+        new CustomEvent('auth:logout:kitchen', { detail: { targetPath: '/kitchen/login' } })
+      );
+      return Promise.reject(error);
+    }
+
+    // ── 3. CASHIER 401: Auto-refresh with cashier token ──
     const cashierToken = getCashierToken();
     if (!cashierToken) {
       removeCashierToken();

@@ -18,6 +18,7 @@ import {
 import { FaWhatsapp, FaFacebookF, FaInstagram, FaPhone } from 'react-icons/fa6';
 import { GiCookingPot } from 'react-icons/gi';
 import { useBusinessSetup } from '../hooks/useBusinessSetup';
+import { getCashierToken, getKitchenToken, getBranchToken } from '../lib/axios';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -53,50 +54,108 @@ const HomePage: React.FC = () => {
   const facebookUrl = formatSocialLink(business?.face, 'fb');
   const instagramUrl = formatSocialLink(business?.instagram, 'insta');
 
+  // Smart portal navigation: check auth directly to avoid intermediate redirects/flickers
+  const handlePortalClick = (target: 'order' | 'cashier' | 'kitchen' | 'branches') => {
+    switch (target) {
+      case 'order':
+        navigate('/order');
+        break;
+      case 'cashier':
+        if (getCashierToken()) {
+          navigate('/dashboard');
+        } else {
+          navigate('/login');
+        }
+        break;
+      case 'kitchen':
+        if (getKitchenToken()) {
+          navigate('/kitchen');
+        } else {
+          navigate('/kitchen/login');
+        }
+        break;
+      case 'branches':
+        if (getBranchToken()) {
+          navigate('/branches');
+        } else {
+          navigate('/branch/login');
+        }
+        break;
+    }
+  };
+
   const portalCards = [
     {
+      id: 'order' as const,
       title: 'الطلب والتوصيل أونلاين',
-      path: '/order',
+      tag: 'خدمة عامة',
       icon: FiTruck,
-      glow: 'bg-blue-500/10 group-hover:bg-blue-500/25',
-      borderHover: 'hover:border-blue-500/50',
-      shadowHover: 'hover:shadow-blue-500/20',
-      iconBox: 'bg-gradient-to-tr from-blue-500/20 to-indigo-500/10 border-blue-500/30 text-blue-400 shadow-blue-500/10',
-      titleHover: 'group-hover:text-blue-400',
-      btnHover: 'group-hover:bg-blue-500 group-hover:border-blue-500',
+      glowColor: 'bg-sky-500',
+      topLineGradient: 'from-sky-500 via-blue-500 to-transparent',
+      cardBg: 'from-sky-950/20 via-[#10131c]/95 to-[#090b10]',
+      cardBorder: 'border-sky-500/20 hover:border-sky-400/60',
+      cardShadow: 'hover:shadow-[0_20px_50px_rgba(14,165,233,0.18)]',
+      iconBoxBg: 'from-sky-500/25 to-blue-600/10',
+      iconBorder: 'border-sky-500/30 group-hover:border-sky-400/70',
+      iconGlow: 'bg-sky-500/30',
+      iconColor: 'text-sky-400',
+      titleGradient: 'from-white via-sky-100 to-sky-400',
+      tagStyle: 'bg-sky-500/10 text-sky-400 border-sky-500/25',
+      btnHover: 'group-hover:bg-sky-500 group-hover:text-white group-hover:border-sky-400 group-hover:shadow-lg group-hover:shadow-sky-500/30',
     },
     {
+      id: 'cashier' as const,
       title: 'بوابة الكاشير والمبيعات',
-      path: '/dashboard',
+      tag: 'نظام المبيعات',
       icon: FiMonitor,
-      glow: 'bg-primary/10 group-hover:bg-primary/25',
-      borderHover: 'hover:border-primary/50',
-      shadowHover: 'hover:shadow-primary/20',
-      iconBox: 'bg-gradient-to-tr from-primary/20 to-indigo-500/10 border-primary/30 text-primary shadow-primary/10',
-      titleHover: 'group-hover:text-primary',
-      btnHover: 'group-hover:bg-primary group-hover:border-primary',
+      glowColor: 'bg-indigo-500',
+      topLineGradient: 'from-primary via-indigo-500 to-transparent',
+      cardBg: 'from-indigo-950/20 via-[#11101a]/95 to-[#0a0910]',
+      cardBorder: 'border-primary/25 hover:border-primary-light/70',
+      cardShadow: 'hover:shadow-[0_20px_50px_rgba(99,102,241,0.2)]',
+      iconBoxBg: 'from-primary/25 to-indigo-600/10',
+      iconBorder: 'border-primary/30 group-hover:border-primary-light/70',
+      iconGlow: 'bg-primary/30',
+      iconColor: 'text-primary-light',
+      titleGradient: 'from-white via-indigo-100 to-primary-light',
+      tagStyle: 'bg-primary/10 text-primary-light border-primary/25',
+      btnHover: 'group-hover:bg-primary group-hover:text-white group-hover:border-primary-light group-hover:shadow-lg group-hover:shadow-primary/30',
     },
     {
+      id: 'kitchen' as const,
       title: 'شاشة ونظام المطبخ',
-      path: '/kitchen/login',
+      tag: 'شاشة KDS',
       icon: GiCookingPot,
-      glow: 'bg-orange-500/10 group-hover:bg-orange-500/25',
-      borderHover: 'hover:border-orange-500/50',
-      shadowHover: 'hover:shadow-orange-500/20',
-      iconBox: 'bg-gradient-to-tr from-orange-500/20 to-amber-500/10 border-orange-500/30 text-orange-400 shadow-orange-500/10',
-      titleHover: 'group-hover:text-orange-400',
-      btnHover: 'group-hover:bg-orange-500 group-hover:border-orange-500',
+      glowColor: 'bg-orange-500',
+      topLineGradient: 'from-orange-500 via-amber-500 to-transparent',
+      cardBg: 'from-orange-950/20 via-[#17110e]/95 to-[#0d0907]',
+      cardBorder: 'border-orange-500/25 hover:border-orange-400/70',
+      cardShadow: 'hover:shadow-[0_20px_50px_rgba(249,115,22,0.2)]',
+      iconBoxBg: 'from-orange-500/25 to-amber-600/10',
+      iconBorder: 'border-orange-500/30 group-hover:border-orange-400/70',
+      iconGlow: 'bg-orange-500/30',
+      iconColor: 'text-orange-400',
+      titleGradient: 'from-white via-amber-100 to-orange-400',
+      tagStyle: 'bg-orange-500/10 text-orange-400 border-orange-500/25',
+      btnHover: 'group-hover:bg-orange-500 group-hover:text-white group-hover:border-orange-400 group-hover:shadow-lg group-hover:shadow-orange-500/30',
     },
     {
+      id: 'branches' as const,
       title: 'منظومة وإدارة الفروع',
-      path: '/branches',
+      tag: 'إدارة مركزية',
       icon: FiMapPin,
-      glow: 'bg-purple-500/10 group-hover:bg-purple-500/25',
-      borderHover: 'hover:border-purple-500/50',
-      shadowHover: 'hover:shadow-purple-500/20',
-      iconBox: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10 border-purple-500/30 text-purple-400 shadow-purple-500/10',
-      titleHover: 'group-hover:text-purple-400',
-      btnHover: 'group-hover:bg-purple-500 group-hover:border-purple-500',
+      glowColor: 'bg-purple-500',
+      topLineGradient: 'from-purple-500 via-fuchsia-500 to-transparent',
+      cardBg: 'from-purple-950/20 via-[#150f1d]/95 to-[#0d0714]',
+      cardBorder: 'border-purple-500/25 hover:border-purple-400/70',
+      cardShadow: 'hover:shadow-[0_20px_50px_rgba(168,85,247,0.2)]',
+      iconBoxBg: 'from-purple-500/25 to-fuchsia-600/10',
+      iconBorder: 'border-purple-500/30 group-hover:border-purple-400/70',
+      iconGlow: 'bg-purple-500/30',
+      iconColor: 'text-purple-400',
+      titleGradient: 'from-white via-purple-100 to-purple-400',
+      tagStyle: 'bg-purple-500/10 text-purple-400 border-purple-500/25',
+      btnHover: 'group-hover:bg-purple-500 group-hover:text-white group-hover:border-purple-400 group-hover:shadow-lg group-hover:shadow-purple-500/30',
     },
   ];
 
@@ -199,21 +258,21 @@ const HomePage: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 mx-auto px-4 py-12 sm:py-16 flex flex-col items-center justify-center w-full">
+      <main className="relative z-10 flex-1 mx-auto px-4 py-6 sm:py-8 flex flex-col items-center justify-center w-full">
         {/* Business Showcase Card (Only shown if data exists, otherwise kept blank) */}
         {hasBusinessData && (
           <div
             data-aos="zoom-in"
             data-aos-duration="600"
-            className="w-full max-w-2xl mb-10 p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl relative overflow-hidden text-center"
+            className="w-full max-w-xl mb-6 p-5 sm:p-6 rounded-3xl bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl relative overflow-hidden text-center"
           >
             <div className="absolute top-0 right-0 w-60 h-60 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
             {/* Business Logo */}
             {logoUrl && (
-              <div className="relative inline-flex items-center justify-center mb-4">
+              <div className="relative inline-flex items-center justify-center mb-3">
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-primary to-indigo-500 blur-xl opacity-40 animate-pulse-soft" />
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#0e0e12] border border-white/15 p-2 shadow-xl flex items-center justify-center overflow-hidden">
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#0e0e12] border border-white/15 p-2 shadow-xl flex items-center justify-center overflow-hidden">
                   <img
                     src={logoUrl}
                     alt={business?.name || 'Logo'}
@@ -228,27 +287,27 @@ const HomePage: React.FC = () => {
 
             {/* Business Name */}
             {business?.name && (
-              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-2">
+              <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight mb-1.5">
                 {business.name}
               </h1>
             )}
 
             {/* Business Description */}
             {business?.description && (
-              <p className="text-sm sm:text-base text-neutral-300 max-w-xl mx-auto leading-relaxed mb-6">
+              <p className="text-xs sm:text-sm text-neutral-300 max-w-lg mx-auto leading-relaxed mb-4">
                 {business.description}
               </p>
             )}
 
             {/* Social & Contact Actions */}
-            <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
               {business?.phone && (
                 <a
                   href={`tel:${business.phone}`}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs sm:text-sm font-semibold text-neutral-200 hover:text-white transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-semibold text-neutral-200 hover:text-white transition-all shadow-sm"
                   title="اتصال هاتفياً"
                 >
-                  <FaPhone className="w-3.5 h-3.5 text-primary" />
+                  <FaPhone className="w-3 h-3 text-primary" />
                   <span dir="ltr">{business.phone}</span>
                 </a>
               )}
@@ -258,10 +317,10 @@ const HomePage: React.FC = () => {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-xs sm:text-sm font-semibold text-emerald-400 transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-xs font-semibold text-emerald-400 transition-all shadow-sm"
                   title="تواصل عبر واتساب"
                 >
-                  <FaWhatsapp className="w-4 h-4 text-emerald-400" />
+                  <FaWhatsapp className="w-3.5 h-3.5 text-emerald-400" />
                   <span>واتساب</span>
                 </a>
               )}
@@ -271,10 +330,10 @@ const HomePage: React.FC = () => {
                   href={facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-xs sm:text-sm font-semibold text-blue-400 transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-xs font-semibold text-blue-400 transition-all shadow-sm"
                   title="صفحة فيسبوك"
                 >
-                  <FaFacebookF className="w-3.5 h-3.5 text-blue-400" />
+                  <FaFacebookF className="w-3 h-3 text-blue-400" />
                   <span>فيسبوك</span>
                 </a>
               )}
@@ -284,10 +343,10 @@ const HomePage: React.FC = () => {
                   href={instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 text-xs sm:text-sm font-semibold text-pink-400 transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 text-xs font-semibold text-pink-400 transition-all shadow-sm"
                   title="حساب انستجرام"
                 >
-                  <FaInstagram className="w-4 h-4 text-pink-400" />
+                  <FaInstagram className="w-3.5 h-3.5 text-pink-400" />
                   <span>انستجرام</span>
                 </a>
               )}
@@ -296,58 +355,84 @@ const HomePage: React.FC = () => {
         )}
 
         {/* Title & Introduction */}
-        <div data-aos="fade-up" data-aos-duration="600" className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-bold text-neutral-300 mb-4 shadow-sm">
+        <div data-aos="fade-up" data-aos-duration="600" className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-bold text-neutral-300 mb-3 shadow-sm">
             <FiZap className="w-3.5 h-3.5 text-amber-400" />
             <span>منظومة متكاملة لنقاط البيع، خدمة الطاولات، والطلب أونلاين</span>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
             مرحباً بك في نظام <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary via-indigo-400 to-primary">POS</span>
           </h2>
-          <p className="text-base sm:text-lg text-neutral-400 mt-3 leading-relaxed">
+          <p className="text-sm sm:text-base text-neutral-400 mt-2 leading-relaxed">
             يرجى تحديد بوابة الاستخدام للمتابعة إلى المسار المناسب
           </p>
         </div>
 
-        {/* The Action Cards (Names & Direct Navigation Only) */}
+        {/* The Action Cards (Premium Bento Grid) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
           {portalCards.map((card, idx) => {
             const Icon = card.icon;
             return (
               <div
-                key={card.path}
-                onClick={() => navigate(card.path)}
+                key={card.id}
+                onClick={() => handlePortalClick(card.id)}
                 data-aos="fade-up"
-                data-aos-delay={(idx + 1) * 100}
+                data-aos-delay={(idx + 1) * 80}
                 data-aos-duration="600"
-                className={`group relative rounded-3xl bg-[#101014]/90 border border-white/10 ${card.borderHover} p-8 flex flex-col items-center justify-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${card.shadowHover} cursor-pointer overflow-hidden backdrop-blur-xl min-h-[220px]`}
+                className={`group relative rounded-[28px] bg-gradient-to-b ${card.cardBg} border ${card.cardBorder} p-6 sm:p-7 flex flex-col justify-between items-center text-center transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] ${card.cardShadow} cursor-pointer overflow-hidden backdrop-blur-2xl min-h-[255px]`}
               >
-                {/* Glow Ambient */}
+                {/* Top Accent Gradient Light Line */}
                 <div
-                  className={`absolute top-0 right-0 w-36 h-36 rounded-full blur-3xl transition-colors pointer-events-none ${card.glow}`}
+                  className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${card.topLineGradient} opacity-30 group-hover:opacity-100 transition-opacity duration-500`}
                 />
 
-                {/* Icon */}
+                {/* Atmospheric Ambient Glow */}
                 <div
-                  className={`w-16 h-16 rounded-2xl border flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110 mb-5 ${card.iconBox}`}
-                >
-                  <Icon className="w-8 h-8" />
+                  className={`absolute -top-12 -right-12 w-48 h-48 rounded-full blur-[70px] pointer-events-none transition-all duration-700 opacity-20 group-hover:opacity-60 ${card.glowColor}`}
+                />
+
+                {/* Subtle Inner Glow */}
+                <div
+                  className={`absolute -bottom-16 -left-16 w-40 h-40 rounded-full blur-[60px] pointer-events-none transition-all duration-700 opacity-0 group-hover:opacity-30 ${card.glowColor}`}
+                />
+
+                {/* Top: Status / Category Tag */}
+                <div className="w-full flex justify-center mb-5">
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase border transition-all duration-300 group-hover:scale-105 ${card.tagStyle}`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                    <span>{card.tag}</span>
+                  </span>
                 </div>
 
-                {/* Title (Only Name) */}
+                {/* Center: Heroic Floating Icon */}
+                <div className="relative mb-5 flex items-center justify-center">
+                  <div
+                    className={`absolute inset-0 rounded-2xl blur-xl opacity-0 group-hover:opacity-80 transition-all duration-500 ${card.iconGlow}`}
+                  />
+                  <div
+                    className={`relative w-20 h-20 rounded-2xl bg-gradient-to-tr ${card.iconBoxBg} border ${card.iconBorder} flex items-center justify-center ${card.iconColor} shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1`}
+                  >
+                    <Icon className="w-9 h-9 transition-transform duration-500 group-hover:scale-105" />
+                  </div>
+                </div>
+
+                {/* Title (Only Name - High Contrast & Gradient Hover) */}
                 <h2
-                  className={`text-xl sm:text-2xl font-bold text-white transition-colors tracking-tight ${card.titleHover}`}
+                  className={`text-xl sm:text-2xl font-black text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-l ${card.titleGradient} transition-all duration-300 tracking-tight leading-snug px-2`}
                 >
                   {card.title}
                 </h2>
 
-                {/* Visual Arrow Indicator */}
-                <div className="mt-5">
+                {/* Bottom Interactive Launcher Bar */}
+                <div className="mt-6 w-full pt-4 border-t border-white/5 flex items-center justify-between text-xs font-bold text-neutral-400 group-hover:text-white transition-colors">
+                  <span className="tracking-wide">انقر للدخول</span>
                   <div
-                    className={`w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-neutral-400 transition-all ${card.btnHover} group-hover:text-white`}
+                    className={`w-8 h-8 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-neutral-300 transition-all duration-300 ${card.btnHover}`}
                   >
-                    <FiArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    <FiArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                   </div>
                 </div>
               </div>

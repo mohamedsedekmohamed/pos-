@@ -348,6 +348,19 @@ const KitchenDisplayPage: React.FC = () => {
     }
   }, [navigate]);
 
+  // Listen for 401 logout from axios
+  useEffect(() => {
+    const handleKitchenLogout = () => {
+      removeKitchenToken();
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('pos_kitchen_user');
+      }
+      navigate('/kitchen/login', { replace: true });
+    };
+    window.addEventListener('auth:logout:kitchen', handleKitchenLogout);
+    return () => window.removeEventListener('auth:logout:kitchen', handleKitchenLogout);
+  }, [navigate]);
+
   // Real-time clock
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -382,6 +395,20 @@ const KitchenDisplayPage: React.FC = () => {
       setCountdown(REFRESH_INTERVAL);
     }
   }, [dataUpdatedAt]);
+
+  // Handle 401 error directly if token became invalid
+  useEffect(() => {
+    if (isError) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 401) {
+        removeKitchenToken();
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('pos_kitchen_user');
+        }
+        navigate('/kitchen/login', { replace: true });
+      }
+    }
+  }, [isError, error, navigate]);
 
   const orders: KitchenOrder[] = ordersData?.data || [];
 
