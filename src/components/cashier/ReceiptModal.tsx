@@ -62,7 +62,9 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
           flex-direction: column !important;
           align-items: center !important;
           justify-content: flex-start !important;
-          font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+          font-family: 'Tahoma', 'Arial', -apple-system, sans-serif !important;
+          -webkit-font-smoothing: none !important;
+          text-rendering: geometricPrecision !important;
         }
         #pos-receipt-print {
           width: 76mm !important;
@@ -71,15 +73,51 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
           height: auto !important;
           margin-left: auto !important;
           margin-right: auto !important;
-          margin-top: 4mm !important;
-          margin-bottom: 4mm !important;
-          padding: 4mm 3mm !important;
+          margin-top: 2mm !important;
+          margin-bottom: 2mm !important;
+          padding: 3mm 2mm !important;
           box-shadow: none !important;
           border: none !important;
           border-top: none !important;
           border-radius: 0 !important;
           background: #ffffff !important;
           box-sizing: border-box !important;
+          color: #000000 !important;
+          font-family: 'Tahoma', 'Arial', sans-serif !important;
+        }
+
+        /* ── Thermal Printer Blackness & Contrast Optimization ── */
+        #pos-receipt-print,
+        #pos-receipt-print * {
+          color: #000000 !important;
+          border-color: #000000 !important;
+          background: transparent !important;
+          background-color: transparent !important;
+          -webkit-text-stroke: 0.35px #000000 !important;
+          text-stroke: 0.35px #000000 !important;
+          -webkit-font-smoothing: none !important;
+          text-rendering: geometricPrecision !important;
+        }
+
+        #pos-receipt-print h1,
+        #pos-receipt-print th,
+        #pos-receipt-print .font-bold,
+        #pos-receipt-print .font-black,
+        #pos-receipt-print .font-extrabold {
+          font-weight: 900 !important;
+          -webkit-text-stroke: 0.5px #000000 !important;
+          text-stroke: 0.5px #000000 !important;
+        }
+
+        #pos-receipt-print .border-dashed {
+          border-style: dashed !important;
+          border-color: #000000 !important;
+        }
+
+        #pos-receipt-print img {
+          image-rendering: pixelated !important;
+          image-rendering: crisp-edges !important;
+          filter: contrast(150%) brightness(85%) !important;
         }
       }
     `,
@@ -179,12 +217,10 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, orderData 
               <h1 className="text-lg font-black tracking-wider text-black uppercase">
                 {storeName}
               </h1>
-              <p className="text-[10px] font-semibold text-gray-700">
-                {t('tax_invoice')}
-              </p>
+           
               {business?.phone && (
                 <p className="text-[10px] text-gray-600 font-mono">
-                  {business.phone}
+                   {business.phone}
                 </p>
               )}
               <p className="text-[10px] text-gray-600">

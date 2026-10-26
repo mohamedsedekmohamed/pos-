@@ -18,6 +18,7 @@ import ShiftPage from './pages/ShiftPage';
 import UserProfilePage from './pages/profile/ProfilePage';
 import UserMenuPage from './pages/user/UserMenuPage';
 import OrderSuccessPage from './pages/user/OrderSuccessPage';
+import MyOrderPage from './pages/MyOrderPage';
 import BranchesPage from './pages/branch/BranchesPage';
 import BranchLoginPage from './pages/branch/BranchLoginPage';
 import KitchenLoginPage from './pages/kitchen/KitchenLoginPage';
@@ -42,6 +43,11 @@ function App() {
                 <Route path="/order/profile" element={<UserProfilePage backTo="/order" />} />
                 <Route path="/order/success/:orderId" element={<OrderSuccessPage />} />
                 <Route path="/order/:orderId" element={<OrderSuccessPage />} />
+                {/* Public Order Tracking System */}
+                <Route path="/my_order" element={<MyOrderPage />} />
+                <Route path="/my_order/:code" element={<MyOrderPage />} />
+                <Route path="/my-order" element={<MyOrderPage />} />
+                <Route path="/my-order/:code" element={<MyOrderPage />} />
                 <Route path="/table" element={<TablePage />} />
                 <Route path="/table/:table_code" element={<TablePage />} />
                 <Route path="/table_code" element={<TablePage />} />

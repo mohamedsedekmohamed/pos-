@@ -4,3 +4,4 @@ export * from './cashier';
 export * from './business';
 export * from './branch';
 export * from './kitchen';
+export * from './orderTracking';

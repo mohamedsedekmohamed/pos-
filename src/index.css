@@ -113,7 +113,7 @@ html {
 @media print {
   body {
     background: white !important;
-    color: black !important;
+    color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
   }
@@ -135,21 +135,51 @@ html {
   #pos-receipt-print {
     margin-left: auto !important;
     margin-right: auto !important;
-    margin-top: 4mm !important;
-    margin-bottom: 4mm !important;
-    padding: 4mm 3mm !important;
+    margin-top: 2mm !important;
+    margin-bottom: 2mm !important;
+    padding: 3mm 2mm !important;
     width: 76mm !important;
     max-width: 96% !important;
     min-height: auto !important;
     height: auto !important;
     background: white !important;
-    color: black !important;
+    color: #000000 !important;
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
     box-sizing: border-box !important;
+    font-family: 'Tahoma', 'Arial', -apple-system, sans-serif !important;
+  }
+
+  /* ── Thermal Printer Blackness & Contrast Optimization ── */
+  #pos-receipt-print,
+  #pos-receipt-print * {
+    color: #000000 !important;
+    border-color: #000000 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    -webkit-text-stroke: 0.35px #000000 !important;
+    text-stroke: 0.35px #000000 !important;
+    -webkit-font-smoothing: none !important;
+    text-rendering: geometricPrecision !important;
+  }
+
+  #pos-receipt-print h1,
+  #pos-receipt-print th,
+  #pos-receipt-print .font-bold,
+  #pos-receipt-print .font-black,
+  #pos-receipt-print .font-extrabold {
+    font-weight: 900 !important;
+    -webkit-text-stroke: 0.5px #000000 !important;
+    text-stroke: 0.5px #000000 !important;
+  }
+
+  #pos-receipt-print img {
+    image-rendering: pixelated !important;
+    image-rendering: crisp-edges !important;
+    filter: contrast(150%) brightness(85%) !important;
   }
 
   @page {
@@ -157,3 +187,4 @@ html {
     margin: 0mm;
   }
 }
+
